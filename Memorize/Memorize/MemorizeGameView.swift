@@ -7,18 +7,40 @@
 
 import SwiftUI
 
-struct ContentView: View {
+struct MemorizeGameView: View {
     var body: some View {
         VStack {
             Image(systemName: "globe")
+                .foregroundColor(Color.orange)
                 .imageScale(.large)
                 .foregroundStyle(.tint)
-            Text("Hello, world!")
+            Text("It's me, Mario!")
         }
         .padding()
     }
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #Preview {
-    ContentView()
+    MemorizeGameView()
 }
