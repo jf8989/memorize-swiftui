@@ -8,9 +8,9 @@ struct MemorizeGameView: View {
     @State var selectedEmojiGroup: [String] = []
     
     // This is my hardcoded array of emojis.
-    let halloweenEmojis = ["👻", "🎃", "🕷️", "💀", "🧙‍♀️", "🦇", "🌕", "⚰️", "👻", "🎃", "🕷️", "💀", "🧙‍♀️", "🦇", "🌕", "⚰️"]
-    let animalEmojis = ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼"]
-    let carsEmojis = ["🚗", "🚕", "🚙", "🚌", "🚎", "🏎️", "🚓", "🚑", "🚗", "🚕", "🚙", "🚌", "🚎", "🏎️", "🚓", "🚑"]
+    let halloweenEmojis = ["👻", "🎃", "🕷️", "💀", "🧙‍♀️", "🦇", "🌕", "⚰️"]
+    let animalEmojis = ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼"]
+    let carsEmojis = ["🚗", "🚕", "🚙", "🚌", "🚎", "🏎️", "🚓", "🚑"]
     
     let gameTitle: String = "Memorize!"
     
@@ -20,7 +20,7 @@ struct MemorizeGameView: View {
             Spacer()
             cards // we place the card's grid at the top
             Spacer()  // we add a space to push them away from each other all the way to the edges
-            cardCountAdjusters  // we insert the button's view here, defaulting all the way to the bottom of the screen
+            //cardCountAdjusters  // we insert the button's view here, defaulting all the way to the bottom of the screen
             theme
         }
         .padding()
@@ -52,14 +52,10 @@ struct MemorizeGameView: View {
     // Dynamically creating the buttons and their logic
     func themeAdjuster(emojiGroup: [String], symbol: String, themeName: String) -> some View {
         Button(action: {
-            selectedEmojiGroup = emojiGroup.shuffled()
-            if emojiGroup == halloweenEmojis {
-                cardCount = 8
-            } else if emojiGroup == animalEmojis {
-                cardCount = 16
-            } else if emojiGroup == carsEmojis {
-                cardCount = 10
-            }
+            
+            selectedEmojiGroup = (emojiGroup + emojiGroup).shuffled() // duplicate the array to generate "pairs"
+            cardCount = selectedEmojiGroup.count // modify the card count to show the sum of the arrays
+            
         }, label: {
             VStack {
                 Image(systemName: symbol)
