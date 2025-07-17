@@ -61,6 +61,7 @@ struct MemorizeGameView: View {
                 Image(systemName: symbol)
                     .font(.largeTitle)
                 Text(themeName)
+                    .font(.footnote)
             }
         })
     }
