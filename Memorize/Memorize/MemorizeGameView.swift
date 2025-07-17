@@ -2,23 +2,31 @@ import SwiftUI
 
 struct MemorizeGameView: View {
     
-    // This is my hardcoded array of emojis.  The idea later will be to have at least 4 sets of these that get picked randomly.
-    let emojis = ["🦄", "🐇", "🐰", "🐹", "🐻", "🐼", "🐨", "🐿️", "🐇", "🦄", "🐰", "🐹", "🐻", "🐼", "🐨", "🐿️"]
-    
     // We add state so that it's modifyiable from anywhere in this file.
-    @State var cardCount: Int = 4
+    @State var cardCount: Int = 0
+    
+    @State var selectedEmojiGroup: [String] = []
+    
+    // This is my hardcoded array of emojis.
+    let halloweenEmojis = ["👻", "🎃", "🕷️", "💀", "🧙‍♀️", "🦇", "🌕", "⚰️", "👻", "🎃", "🕷️", "💀", "🧙‍♀️", "🦇", "🌕", "⚰️"]
+    let animalEmojis = ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼"]
+    let carsEmojis = ["🚗", "🚕", "🚙", "🚌", "🚎", "🏎️", "🚓", "🚑", "🚗", "🚕", "🚙", "🚌", "🚎", "🏎️", "🚓", "🚑"]
+    
+    let gameTitle: String = "Memorize!"
     
     var body: some View {
         VStack {  // we're aligning all of our views vertically in order to organize the UI
             title
+            Spacer()
             cards // we place the card's grid at the top
             Spacer()  // we add a space to push them away from each other all the way to the edges
             cardCountAdjusters  // we insert the button's view here, defaulting all the way to the bottom of the screen
+            theme
         }
         .padding()
     }
     
-    let gameTitle: String = "Memorize"
+    
     var title: some View {
         Text(gameTitle)
             .font(.largeTitle)
@@ -27,11 +35,66 @@ struct MemorizeGameView: View {
             .foregroundColor(.teal)
     }
     
+    // *** THEME ***
+    
+    var theme: some View {
+        HStack {
+            Spacer()
+            theme1
+            Spacer()
+            theme2
+            Spacer()
+            theme3
+            Spacer()
+        }
+    }
+    
+    // Dynamically creating the buttons and their logic
+    func themeAdjuster(emojiGroup: [String], symbol: String, themeName: String) -> some View {
+        Button(action: {
+            selectedEmojiGroup = emojiGroup.shuffled()
+            if emojiGroup == halloweenEmojis {
+                cardCount = 8
+            } else if emojiGroup == animalEmojis {
+                cardCount = 16
+            } else if emojiGroup == carsEmojis {
+                cardCount = 10
+            }
+        }, label: {
+            VStack {
+                Image(systemName: symbol)
+                    .font(.largeTitle)
+                Text(themeName)
+            }
+        })
+    }
+    
+    var theme1: some View {
+        themeAdjuster(emojiGroup: halloweenEmojis, symbol: "1.lane", themeName: "Halloween")
+            .foregroundColor(.teal)
+    }
+    
+    var theme2: some View {
+        themeAdjuster(emojiGroup: animalEmojis, symbol: "2.lane", themeName: "Animals")
+            .foregroundColor(.teal)
+    }
+    
+    var theme3: some View {
+        themeAdjuster(emojiGroup: carsEmojis, symbol: "3.lane", themeName: "Vehicles")
+            .foregroundColor(.teal)
+    }
+
+    
+    // *** CARDS ***
+    
     // main grid where the cards reside
+    @ViewBuilder
     var cards: some View {
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 120))]) {
-            ForEach(0..<cardCount, id: \.self) { index in
-                CardView(content: emojis[index])
+        if !selectedEmojiGroup.isEmpty {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 120))]) {
+                ForEach(0..<cardCount, id: \.self) { index in
+                    CardView(content: selectedEmojiGroup[index])
+                }
             }
         }
     }
@@ -54,7 +117,7 @@ struct MemorizeGameView: View {
         }, label: {
             Image(systemName: symbol)
         })
-        .disabled(cardCount + offset < 1 || cardCount + offset > emojis.count)
+        .disabled(cardCount + offset < 1 || cardCount + offset > halloweenEmojis.count)
     }
     
     // we're calling the function with different parameters depending on the desired action
