@@ -1,14 +1,55 @@
 import SwiftUI
 
 struct MemorizeGameView: View {
-    var body: some View {  // "some" is there to guarantee that a "view", regardless of the type, is returned.
-        let emojis = ["🦄", "🐇", "🐰", "🐹", "🐻", "🐼", "🐨", "🐿️"]
+    
+    let emojis = ["🦄", "🐇", "🐰", "🐹", "🐻", "🐼", "🐨", "🐿️", "🐇", "🦄", "🐰", "🐹", "🐻", "🐼", "🐨", "🐿️"]
+    
+    @State var cardCount: Int = 4
+    
+    var body: some View {
+        VStack {
+            cards
+            cardCountAdjusters
+        }
+        .padding()
+    }
+    
+    var cardCountAdjusters: some View {
         HStack {
-            ForEach(0..<7, id: \.self) { index in
+            cardRemover
+            Spacer()
+            cardAdder
+        }
+        .imageScale(.large)
+        .font(.title)
+    }
+    
+    var cards: some View {
+        HStack {
+            ForEach(0..<cardCount, id: \.self) { index in
                 CardView(content: emojis[index])
             }
         }
-        .padding()
+    }
+    
+    var cardRemover: some View {
+        Button(action: {
+            if cardCount > 1  {
+                cardCount -= 1
+            }
+        }, label: {
+            Image(systemName: "rectangle.stack.fill.badge.minus")
+        })
+    }
+    
+    var cardAdder: some View {
+        Button(action: {
+            if cardCount < emojis.count {
+                cardCount += 1
+            }
+        }, label: {
+            Image(systemName: "rectangle.stack.fill.badge.plus")
+        })
     }
 }
 
