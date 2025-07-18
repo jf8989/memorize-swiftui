@@ -7,10 +7,12 @@ struct MemorizeGameView: View {
     
     @State var selectedEmojiGroup: [String] = []
     
+    @State private var currentThemeColor: Color = .orange
+
     // This are my hardcoded arrays of emojis.
     let halloweenEmojis: [String] = ["👻", "🎃", "🕷️", "💀", "🧙‍♀️", "🦇", "🌕", "⚰️"]
-    let animalEmojis: [String] = ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼"]
-    let carsEmojis: [String] = ["🚗", "🚕", "🚙", "🚌", "🚎", "🏎️", "🚓", "🚑"]
+    let animalEmojis: [String] = ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻"]
+    let carsEmojis: [String] = ["🚗", "🚕", "🚙", "🚌", "🚎", "🏎️"]
     
     let gameTitle: String = "Memorize!"
     
@@ -50,11 +52,16 @@ struct MemorizeGameView: View {
     }
     
     // Dynamically creating the buttons and their logic
-    func themeAdjuster(emojiGroup: [String], symbol: String, themeName: String) -> some View {
+    func themeAdjuster(emojiGroup: [String],
+                       symbol: String,
+                       themeName: String,
+                       themeColor: Color) -> some View {
         Button(action: {
             
-            selectedEmojiGroup = (emojiGroup + emojiGroup).shuffled() // duplicate the array to generate "pairs"
+            selectedEmojiGroup = (emojiGroup + emojiGroup)
+                .shuffled() // duplicate the array to generate "pairs"
             cardCount = selectedEmojiGroup.count // modify the card count to show the sum of the arrays
+            currentThemeColor = themeColor
             
         }, label: {
             VStack {
@@ -67,17 +74,17 @@ struct MemorizeGameView: View {
     }
     
     var theme1: some View {
-        themeAdjuster(emojiGroup: halloweenEmojis, symbol: "1.lane", themeName: "Halloween")
+        themeAdjuster(emojiGroup: halloweenEmojis, symbol: "theatermasks.fill", themeName: "Halloween", themeColor: .orange)
             .foregroundColor(.teal)
     }
     
     var theme2: some View {
-        themeAdjuster(emojiGroup: animalEmojis, symbol: "2.lane", themeName: "Animals")
+        themeAdjuster(emojiGroup: animalEmojis, symbol: "dog", themeName: "Animals", themeColor: .brown)
             .foregroundColor(.teal)
     }
     
     var theme3: some View {
-        themeAdjuster(emojiGroup: carsEmojis, symbol: "3.lane", themeName: "Vehicles")
+        themeAdjuster(emojiGroup: carsEmojis, symbol: "truck.box", themeName: "Vehicles", themeColor: .green)
             .foregroundColor(.teal)
     }
 
@@ -90,7 +97,8 @@ struct MemorizeGameView: View {
         if !selectedEmojiGroup.isEmpty {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 120))]) {
                 ForEach(0..<cardCount, id: \.self) { index in
-                    CardView(content: selectedEmojiGroup[index])
+                    CardView(content: selectedEmojiGroup[index],
+                             themeColor: currentThemeColor)
                 }
             }
         }
@@ -132,6 +140,7 @@ struct MemorizeGameView: View {
 // basic card creation using a separate struct
 struct CardView: View {
     let content: String
+    let themeColor: Color
     @State var isFaceUp = false
     
     var body: some View {
@@ -146,7 +155,7 @@ struct CardView: View {
                 Text(content)
                     .font(.largeTitle)
             } else {
-                base.foregroundColor(.yellow)
+                base.foregroundColor(themeColor)
                     .shadow(radius: 2.5)
                 Text("?")
                     .bold()
