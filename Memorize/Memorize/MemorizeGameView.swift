@@ -7,10 +7,10 @@ struct MemorizeGameView: View {
     
     @State var selectedEmojiGroup: [String] = []
     
-    // This is my hardcoded array of emojis.
-    let halloweenEmojis = ["👻", "🎃", "🕷️", "💀", "🧙‍♀️", "🦇", "🌕", "⚰️"]
-    let animalEmojis = ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼"]
-    let carsEmojis = ["🚗", "🚕", "🚙", "🚌", "🚎", "🏎️", "🚓", "🚑"]
+    // This are my hardcoded arrays of emojis.
+    let halloweenEmojis: [String] = ["👻", "🎃", "🕷️", "💀", "🧙‍♀️", "🦇", "🌕", "⚰️"]
+    let animalEmojis: [String] = ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼"]
+    let carsEmojis: [String] = ["🚗", "🚕", "🚙", "🚌", "🚎", "🏎️", "🚓", "🚑"]
     
     let gameTitle: String = "Memorize!"
     
@@ -139,20 +139,25 @@ struct CardView: View {
             let base = RoundedRectangle(cornerRadius: 12)
             
             if isFaceUp {
-                base.foregroundColor(.white).shadow(radius: 2.5)
-                base.strokeBorder(lineWidth: 2).foregroundColor(.orange)
-                Text(content).font(.largeTitle)
+                base.foregroundColor(.white)
+                    .shadow(radius: 2.5)
+                base.strokeBorder(lineWidth: 2)
+                    .foregroundColor(.orange)
+                Text(content)
+                    .font(.largeTitle)
             } else {
-                base.foregroundColor(.yellow).shadow(radius: 2.5)
-                Text("?").bold().font(.largeTitle).fontDesign(.serif)
+                base.foregroundColor(.yellow)
+                    .shadow(radius: 2.5)
+                Text("?")
+                    .bold()
+                    .font(.largeTitle)
+                    .fontDesign(.serif)
             }
         } .onTapGesture {
             isFaceUp.toggle()
         }
     }
 }
-
-// Notes:  I'm confused as to why we need to create a different struct CardView instead of simply creating a view within the main struct, MemorizeGameView.  Is it that, in order to create a visual element, we must use a struct?  One view per struct?
 
 #Preview {
     MemorizeGameView()
