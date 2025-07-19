@@ -23,7 +23,7 @@ struct MemorizeGameView: View {
             cards  // we place the card's grid at the top
             Spacer()  // we add a space to push them away from each other all the way to the edges
             //cardCountAdjusters  // we insert the button's view here, defaulting all the way to the bottom of the screen
-            theme
+            gameTheme
         }
         .padding()
     }
@@ -38,14 +38,14 @@ struct MemorizeGameView: View {
 
     // *** THEME ***
 
-    var theme: some View {
+    var gameTheme: some View {
         HStack {
             Spacer()
-            theme1
+            halloweenTheme
             Spacer()
-            theme2
+            animalTheme
             Spacer()
-            theme3
+            vehicleTheme
             Spacer()
         }
     }
@@ -59,12 +59,10 @@ struct MemorizeGameView: View {
     ) -> some View {
         Button(
             action: {
-
-                selectedEmojiGroup = (emojiGroup + emojiGroup)
-                    .shuffled()  // duplicate the array to generate "pairs"
-                cardCount = selectedEmojiGroup.count  // modify the card count to show the sum of the arrays
+                selectedEmojiGroup = (emojiGroup + emojiGroup) // duplicate the array to generate "pairs"
+                    .shuffled() // randomize them
+                cardCount = selectedEmojiGroup.count  // now we have twice as many cards
                 currentThemeColor = themeColor
-
             },
             label: {
                 VStack {
@@ -77,7 +75,7 @@ struct MemorizeGameView: View {
         )
     }
 
-    var theme1: some View {
+    var halloweenTheme: some View {
         themeAdjuster(
             emojiGroup: halloweenEmojis,
             symbol: "theatermasks.fill",
@@ -87,7 +85,7 @@ struct MemorizeGameView: View {
         .foregroundColor(.orange)
     }
 
-    var theme2: some View {
+    var animalTheme: some View {
         themeAdjuster(
             emojiGroup: animalEmojis,
             symbol: "dog",
@@ -97,7 +95,7 @@ struct MemorizeGameView: View {
         .foregroundColor(.brown)
     }
 
-    var theme3: some View {
+    var vehicleTheme: some View {
         themeAdjuster(
             emojiGroup: carsEmojis,
             symbol: "truck.box",
