@@ -2,8 +2,7 @@ import SwiftUI
 
 struct MemorizeGameView: View {
 
-    // We add state so that it's modifyiable from anywhere in this file.
-    @State var cardCount: Int = 0
+    var cardCount: Int { selectedEmojiGroup.count }
 
     @State var selectedEmojiGroup: [String] = []
 
@@ -22,7 +21,6 @@ struct MemorizeGameView: View {
             Spacer()
             cards  // we place the card's grid at the top
             Spacer()  // we add a space to push them away from each other all the way to the edges
-            //cardCountAdjusters  // we insert the button's view here, defaulting all the way to the bottom of the screen
             gameTheme
         }
         .padding()
@@ -61,7 +59,6 @@ struct MemorizeGameView: View {
             action: {
                 selectedEmojiGroup = (emojiGroup + emojiGroup) // duplicate the array to generate "pairs"
                     .shuffled() // randomize them
-                cardCount = selectedEmojiGroup.count  // now we have twice as many cards
                 currentThemeColor = themeColor
             },
             label: {
@@ -120,43 +117,6 @@ struct MemorizeGameView: View {
                 }
             }
         }
-    }
-
-    // horizontal stack for the buttons
-    var cardCountAdjusters: some View {
-        HStack {
-            cardRemover
-            Spacer()
-            cardAdder
-        }
-        .imageScale(.large)
-        .font(.title)
-    }
-
-    // Dynamically creating the buttons and their logic
-    func cardCountAdjuster(by offset: Int, symbol: String) -> some View {
-        Button(
-            action: {
-                cardCount += offset
-            },
-            label: {
-                Image(systemName: symbol)
-            }
-        )
-        .disabled(
-            cardCount + offset < 1 || cardCount + offset > halloweenEmojis.count
-        )
-    }
-
-    // we're calling the function with different parameters depending on the desired action
-    var cardRemover: some View {  // removes a card
-        cardCountAdjuster(by: -1, symbol: "rectangle.stack.fill.badge.minus")
-            .foregroundColor(.teal)
-    }
-
-    var cardAdder: some View {  // adds a card
-        cardCountAdjuster(by: +1, symbol: "rectangle.stack.fill.badge.plus")
-            .foregroundColor(.teal)
     }
 }
 
