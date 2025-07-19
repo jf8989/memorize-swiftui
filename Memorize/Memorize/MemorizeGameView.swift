@@ -84,7 +84,7 @@ struct MemorizeGameView: View {
             themeName: "Halloween",
             themeColor: .orange
         )
-        .foregroundColor(.teal)
+        .foregroundColor(.orange)
     }
 
     var theme2: some View {
@@ -94,7 +94,7 @@ struct MemorizeGameView: View {
             themeName: "Animals",
             themeColor: .brown
         )
-        .foregroundColor(.teal)
+        .foregroundColor(.brown)
     }
 
     var theme3: some View {
@@ -104,7 +104,7 @@ struct MemorizeGameView: View {
             themeName: "Vehicles",
             themeColor: .green
         )
-        .foregroundColor(.teal)
+        .foregroundColor(.green)
     }
 
     // *** CARDS ***
@@ -162,7 +162,9 @@ struct MemorizeGameView: View {
     }
 }
 
-// basic card creation using a separate struct
+// basic card creation using a separate struct.  This is a reusable component, and represents a single card
+// in the game.  It can be used in multiple places, and is a good example of how to create reusable components
+// in SwiftUI.
 struct CardView: View {
     let content: String
     let themeColor: Color
