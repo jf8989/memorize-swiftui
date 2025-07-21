@@ -90,12 +90,12 @@ struct MemorizeGameView: View {
     // main grid where the cards reside
     @ViewBuilder
     var cards: some View {
-        if !shuffledEmojis.isEmpty, let theme = selectedTheme {
+        if !shuffledEmojis.isEmpty, let selectedTheme {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 120))]) {
                 ForEach(0..<shuffledEmojis.count, id: \.self) { index in
                     CardView(
                         content: shuffledEmojis[index],
-                        themeColor: theme.color
+                        themeColor: selectedTheme.color
                     )
                 }
             }
