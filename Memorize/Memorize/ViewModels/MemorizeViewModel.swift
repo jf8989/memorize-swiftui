@@ -1,5 +1,4 @@
 // ViewModels/MemorizeViewModel.swift
-// What changed and why:
 // We use @Published so the View will update automatically on change.
 // We use private(set) for selectedTheme so the View can read it but only the VM can change it.
 // The View should never mutate state directly; it just asks the ViewModel to act.
