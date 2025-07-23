@@ -4,48 +4,25 @@ import SwiftUI
 
 struct MemorizeView: View {
     @ObservedObject var viewModel = MemorizeViewModel()  // @ObservedObject means SwiftUI watches for changes and updates the View automatically.
-//    let gameTitle: String = "Memorize!"
+    //    let gameTitle: String = "Memorize!"
 
     var body: some View {
         VStack {  // we're aligning all of our views vertically in order to organize the UI
-//            title
+            //            title
             Spacer()
             cards  // we place the card's grid at the top
             Spacer()  // we add a space to push them away from each other all the way to the edges
-            cardThemes
         }
         .padding()
     }
 
-//    var title: some View {
-//        Text(gameTitle)
-//            .font(.largeTitle)
-//            .fontWeight(.bold)
-//            .fontDesign(.rounded)
-//            .foregroundColor(.teal)
-//    }
-
-    // *** THEME ***
-
-    var cardThemes: some View {  // dynamically generating card theme buttons using ForEach
-        HStack {
-            Spacer()
-            ForEach(EmojiTheme.allCases, id: \.self) { theme in
-                Button(action: {
-                    viewModel.selectTheme(theme)
-                }) {
-                    VStack {
-                        Image(systemName: theme.symbol)
-                            .font(.largeTitle)
-                        Text(theme.name)
-                            .font(.footnote)
-                    }
-                }
-                .foregroundColor(theme.color)
-                Spacer()
-            }
-        }
-    }
+    //    var title: some View {
+    //        Text(gameTitle)
+    //            .font(.largeTitle)
+    //            .fontWeight(.bold)
+    //            .fontDesign(.rounded)
+    //            .foregroundColor(.teal)
+    //    }
 
     // *** CARDS ***
 
