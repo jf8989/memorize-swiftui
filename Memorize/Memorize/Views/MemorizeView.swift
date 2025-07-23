@@ -4,7 +4,6 @@ import SwiftUI
 
 struct MemorizeView: View {
     @ObservedObject var viewModel = MemorizeViewModel()  // @ObservedObject means SwiftUI watches for changes and updates the View automatically.
-    //    let gameTitle: String = "Memorize!"
 
     var body: some View {
         VStack {  // we're aligning all of our views vertically in order to organize the UI
@@ -15,14 +14,6 @@ struct MemorizeView: View {
         }
         .padding()
     }
-
-    //    var title: some View {
-    //        Text(gameTitle)
-    //            .font(.largeTitle)
-    //            .fontWeight(.bold)
-    //            .fontDesign(.rounded)
-    //            .foregroundColor(.teal)
-    //    }
 
     // *** CARDS ***
 
