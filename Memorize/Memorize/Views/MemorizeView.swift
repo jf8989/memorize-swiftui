@@ -1,46 +1,9 @@
+// Views/MemorizeView
+
 import SwiftUI
 
-struct MemorizeGameView: View {
-
-    @State var selectedTheme: EmojiTheme?
-    @State var shuffledEmojis: [String] = []
-
-    enum EmojiTheme: CaseIterable {
-        case halloween, animal, vehicles
-
-        var emojis: [String] {
-            switch self {
-            case .halloween: return ["👻", "🎃", "🕷️", "💀", "🧙‍♀️", "🦇", "🌕", "⚰️"]
-            case .animal: return ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻"]
-            case .vehicles: return ["🚗", "🚕", "🚙", "🚌", "🚎", "🏎️"]
-            }
-        }
-
-        var name: String {
-            switch self {
-            case .halloween: return "Halloween"
-            case .animal: return "Animals"
-            case .vehicles: return "Vehicles"
-            }
-        }
-
-        var symbol: String {
-            switch self {
-            case .halloween: return "theatermasks.fill"
-            case .animal: return "dog"
-            case .vehicles: return "truck.box"
-            }
-        }
-
-        var color: Color {
-            switch self {
-            case .halloween: return .orange
-            case .animal: return .brown
-            case .vehicles: return .green
-            }
-        }
-    }
-
+struct MemorizeView: View {
+    @ObservedObject var viewModel = MemorizeViewModel()  // @ObservedObject means SwiftUI watches for changes and updates the View automatically.
     let gameTitle: String = "Memorize!"
 
     var body: some View {
@@ -69,8 +32,7 @@ struct MemorizeGameView: View {
             Spacer()
             ForEach(EmojiTheme.allCases, id: \.self) { theme in
                 Button(action: {
-                    selectedTheme = theme
-                    shuffledEmojis = (theme.emojis + theme.emojis).shuffled()
+                    viewModel.selectTheme(theme)
                 }) {
                     VStack {
                         Image(systemName: theme.symbol)
@@ -90,12 +52,13 @@ struct MemorizeGameView: View {
     // main grid where the cards reside
     @ViewBuilder
     var cards: some View {
-        if !shuffledEmojis.isEmpty, let selectedTheme {
+        if !viewModel.shuffledEmojis.isEmpty {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 120))]) {
-                ForEach(0..<shuffledEmojis.count, id: \.self) { index in
+                ForEach(0..<viewModel.shuffledEmojis.count, id: \.self) {
+                    index in
                     CardView(
-                        content: shuffledEmojis[index],
-                        themeColor: selectedTheme.color
+                        content: viewModel.shuffledEmojis[index],
+                        themeColor: viewModel.themeColor
                     )
                 }
             }
@@ -137,5 +100,5 @@ struct CardView: View {
 }
 
 #Preview {
-    MemorizeGameView()
+    MemorizeView()
 }

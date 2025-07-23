@@ -1,60 +1,39 @@
 // Model/Theme.swift
-// each theme is a single data object
 
-import Foundation
+import SwiftUI
 
-struct Theme {
-    let name: String
-    let emojis: [String]
-    let numberOfPairs: Int
-    let color: String
+enum EmojiTheme: CaseIterable {
+    case halloween, animal, vehicles
+
+    var emojis: [String] {
+        switch self {
+        case .halloween: return ["👻", "🎃", "🕷️", "💀", "🧙‍♀️", "🦇", "🌕", "⚰️"]
+        case .animal: return ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻"]
+        case .vehicles: return ["🚗", "🚕", "🚙", "🚌", "🚎", "🏎️"]
+        }
+    }
+
+    var name: String {
+        switch self {
+        case .halloween: return "Halloween"
+        case .animal: return "Animals"
+        case .vehicles: return "Vehicles"
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .halloween: return "theatermasks.fill"
+        case .animal: return "dog"
+        case .vehicles: return "truck.box"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .halloween: return .orange
+        case .animal: return .brown
+        case .vehicles: return .green
+        }
+    }
 }
-
-let themes: [Theme] = [
-    Theme(
-        name: "Christmas",
-        emojis: [
-            "🎄", "🎅", "🤶", "❄️", "⛄", "🎁", "🦌", "🔔", "🌟", "🕯️", "🍪", "🥛", "🧦",
-            "🛷",
-        ],
-        numberOfPairs: 12,
-        color: "green"
-    ),  // 14 emojis, 12 pairs
-
-    Theme(
-        name: "Space",
-        emojis: ["🛸", "🚀", "🤖", "🧔‍♂️", "🧙‍♂️", "⚔️", "👽", "🌌", "🛰️", "🔫"],
-        numberOfPairs: 8,
-        color: "black"
-    ),  // 10 emojis, 8 pairs
-
-    Theme(
-        name: "Emotions",
-        emojis: ["😀", "😂", "😢", "😡", "🥰", "😱", "😴", "🤔", "🤢"],
-        numberOfPairs: 6,
-        color: "yellow"
-    ),  // 9 emojis, 6 pairs
-
-    Theme(
-        name: "Anime",
-        emojis: ["🧑‍🎤", "💥", "🌸", "🌀", "⚔️", "👺", "👘", "😈", "🧞", "🧝", "🎌"],
-        numberOfPairs: 8,
-        color: "pink"
-    ),  // 11 emojis, 8 pairs
-
-    Theme(
-        name: "Technology",
-        emojis: [
-            "💻", "🖥️", "📱", "📡", "🧠", "🕹️", "🔌", "🔋", "💾", "📀", "🧬", "🤖", "🔧",
-        ],
-        numberOfPairs: 10,
-        color: "gray"
-    ),  // 13 emojis, 10 pairs
-
-    Theme(
-        name: "Music",
-        emojis: ["🎹", "🎸", "🥁", "🎻", "🎤", "🎧", "📯", "🎼", "🎷", "🪗"],
-        numberOfPairs: 9,
-        color: "indigo"
-    ),  // 10 emojis, 9 pairs
-]
