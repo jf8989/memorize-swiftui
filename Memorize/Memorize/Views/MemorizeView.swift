@@ -11,8 +11,29 @@ struct MemorizeView: View {
             Spacer()
             cards  // we place the card's grid at the top
             Spacer()  // we add a space to push them away from each other all the way to the edges
+            newGameButton
         }
         .padding()
+    }
+    
+    // NEW GAME button (I'll use private var because the View is the only one that should be able to use this
+    private var newGameButton: some View {  // This is just the visual side of the button
+        Button(action: newGameAction) {
+            Text("New Game")
+                .font(.headline)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(Color.blue.opacity(0.8))
+                .foregroundColor(.white)
+                .cornerRadius(12)
+                .padding(.horizontal, 40)
+        }
+        .padding(.bottom)
+    }
+    
+    // This is the button's action.
+    private func newGameAction() {
+        // TODO: let the view model handle it later
     }
 
     // *** CARDS ***
@@ -24,10 +45,10 @@ struct MemorizeView: View {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 120))]) {
                 ForEach(0..<viewModel.shuffledEmojis.count, id: \.self) {
                     index in
-                    CardView(
-                        content: viewModel.shuffledEmojis[index],
-                        themeColor: viewModel.themeColor
-                    )
+//                    CardView(
+////                        content: viewModel.shuffledEmojis[index],
+////                        themeColor: viewModel.themeColor
+//                    )
                 }
             }
         }
