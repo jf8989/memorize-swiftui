@@ -7,13 +7,18 @@ struct MemorizeView: View {
 
     var body: some View {
         VStack {  // we're aligning all of our views vertically in order to organize the UI
-            //            title
+            themeName
             Spacer()
             cards  // we place the card's grid at the top
             Spacer()  // we add a space to push them away from each other all the way to the edges
             newGameButton
         }
         .padding()
+    }
+    
+    // Title of each theme
+    private var themeName: some View {
+        Text(viewModel.themeName)
     }
 
     // NEW GAME button (I'll use private var because the View is the only one that should be able to use this

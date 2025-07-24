@@ -41,7 +41,6 @@ class MemorizeViewModel: ObservableObject {
         guard let theme = EmojiThemeModel.themes.randomElement() else { return }  // 1. Picks a random theme
         selectedTheme = theme  // assigns the theme to a variable
         let chosenEmojis = theme.emojis.shuffled().prefix(theme.numberOfPairs)  // 2. Grabs the emojis propery from the selected theme, shuffles them, and fetches them based on the number of pairs for that theme.  Every single emoji gets the same chance to show up.
-        var cardId = 0
         var newCards: [Card] = []
         for emoji in chosenEmojis {
             newCards.append(Card(content: emoji))
