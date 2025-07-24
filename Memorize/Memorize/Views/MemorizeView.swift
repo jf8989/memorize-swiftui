@@ -3,7 +3,7 @@
 import SwiftUI
 
 struct MemorizeView: View {
-    @Environment(\.colorScheme) var colorScheme
+    @Environment(\.colorScheme) var colorScheme  // This allows me to decide what happens when the Color Scheme is "dark", preventing color-masking.
 
     @ObservedObject var viewModel = MemorizeViewModel()  // @ObservedObject means SwiftUI watches for changes and updates the View automatically.
 
@@ -48,7 +48,7 @@ struct MemorizeView: View {
             )
     }
 
-    // NEW GAME button (I'll use private var because the View is the only one that should be able to use this
+    // NEW GAME button (I'll use private var because the View is the only one that should be able to use this.
     private var newGameButton: some View {  // This is just the visual side of the button
         Button(action: newGameAction) {
             Text("New Game")
@@ -73,14 +73,13 @@ struct MemorizeView: View {
     // main grid where the cards reside
     @ViewBuilder
     var cards: some View {
-        if !viewModel.shuffledEmojis.isEmpty {
+        if !viewModel.cards.isEmpty {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 120))]) {
-                ForEach(0..<viewModel.shuffledEmojis.count, id: \.self) {
-                    index in
-                    //                    CardView(
-                    //                        content: viewModel.shuffledEmojis[index],
-                    //                        themeColor: viewModel.themeColor
-                    //                    )
+                ForEach(viewModel.cards) { card in  // Receives the entire array of cards set in the ViewModel.
+                    CardView(card: card, themeColor: viewModel.themeColor)
+                        .onTapGesture {
+                            viewModel.choose(card)
+                        }
                 }
             }
         }
@@ -91,21 +90,22 @@ struct MemorizeView: View {
 // in the game.  It can be used in multiple places, and is a good example of how to create reusable components
 // in SwiftUI.
 struct CardView: View {
-    let content: String
+    let card: Card  // receives the Card struct from the model
     let themeColor: Color
-    @State var isFaceUp = false
 
     var body: some View {
         ZStack {
             let base = RoundedRectangle(cornerRadius: 12)
 
-            if isFaceUp {
+            if card.isFaceUp {
                 base.foregroundColor(.white)
                     .shadow(radius: 2.5)
                 base.strokeBorder(lineWidth: 2)
                     .foregroundColor(.orange)
-                Text(content)
+                Text(card.content)
                     .font(.largeTitle)
+            } else if card.isMatched {
+                base.opacity(0)
             } else {
                 base.foregroundColor(themeColor)
                     .shadow(radius: 2.5)
@@ -114,8 +114,6 @@ struct CardView: View {
                     .font(.largeTitle)
                     .fontDesign(.serif)
             }
-        }.onTapGesture {
-            isFaceUp.toggle()
         }
     }
 }

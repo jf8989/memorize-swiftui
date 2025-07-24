@@ -22,37 +22,37 @@ struct EmojiThemeModel: Identifiable {  // main struct for the theme and its pro
         EmojiThemeModel(
             name: "Halloween",
             emojis: halloweenEmojis,
-            numberOfPairs: 14,
+            numberOfPairs: 11,
             color: "orange"
         ),
         EmojiThemeModel(
             name: "Animals",
             emojis: animalEmojis,
-            numberOfPairs: 13,
+            numberOfPairs: 10,
             color: "yellow"
         ),
         EmojiThemeModel(
             name: "Vehicles",
             emojis: vehicleEmojis,
-            numberOfPairs: 12,
+            numberOfPairs: 9,
             color: "green"
         ),
         EmojiThemeModel(
             name: "Space",
             emojis: spaceEmojis,
-            numberOfPairs: 11,
+            numberOfPairs: 8,
             color: "black"
         ),
         EmojiThemeModel(
             name: "Christmas",
             emojis: christmasEmojis,
-            numberOfPairs: 10,
+            numberOfPairs: 7,
             color: "red"
         ),
         EmojiThemeModel(
             name: "Technology",
             emojis: techEmojis,
-            numberOfPairs: 9,
+            numberOfPairs: 6,
             color: "purple"
         ),
     ]

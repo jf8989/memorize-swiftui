@@ -13,6 +13,8 @@ class MemorizeViewModel: ObservableObject {
 
     // We'll let the View see the array of cards it needs to display.  In other words, this is the "deck" of cards.
     @Published private(set) var cards: [Card] = []
+    
+    private var rulebook = RulebookModel()  // reference to the Rulebook struct in the model
 
     // We need to tell the View what color to use in Color type.
     var themeColor: Color {
@@ -49,5 +51,10 @@ class MemorizeViewModel: ObservableObject {
         cards = newCards.shuffled()
         print("\(theme.name)")
     }
-
+    
+    func choose(_ card: Card) {
+        rulebook.choose(card: card)  // passing the intent to the rulebook model
+        cards = rulebook.cards  // re-renders the view after checking the rules and applying them.  Basically, the cycle of showing the card grid starts over ever time the user taps on a card.
+        // TODO: implement scording update
+    }
 }
