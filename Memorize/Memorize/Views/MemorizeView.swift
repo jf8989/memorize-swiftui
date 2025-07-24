@@ -105,7 +105,7 @@ struct CardView: View {
                 Text(card.content)
                     .font(.largeTitle)
             } else if card.isMatched {
-                base.opacity(0)
+                base.opacity(0.25)
             } else {
                 base.foregroundColor(themeColor)
                     .shadow(radius: 2.5)
@@ -115,6 +115,7 @@ struct CardView: View {
                     .fontDesign(.serif)
             }
         }
+        .allowsHitTesting(!card.isMatched)  // If cards aren't matched, we allow taps on them; otherwise, they become unclickable.
     }
 }
 

@@ -1,15 +1,57 @@
 //  Model/RulebookModel.swift
 
 struct RulebookModel {
-    // main state
-    private(set) var cards: [Card] = []
+    private(set) var cards: [Card]
     private(set) var score: Int = 0
+
+    // Tap tracking
+    private var tapCount: Int = 0
+    private var tappedCardIndices: [Int] = []
     
+    init(cards: [Card]) {
+        self.cards = cards
+    }
+
+    // The main game logic
     mutating func choose(card: Card) {
-        guard let chosenIndex = cards.firstIndex(where: { $0.id == card.id}),
-              !cards[chosenIndex].isFaceUp,
+        guard let chosenIndex = cards.firstIndex(where: { $0.id == card.id }),  // returns the index of the card the user tapped after looking for its ID within the cards array
+              !cards[chosenIndex].isFaceUp,  // checking if the cards are both faced down and not matched.
               !cards[chosenIndex].isMatched else {
-            return
+            return  // otherwise, exit
+        }  // If we pass the guard, we proceed with the next logic.
+
+        // If card exists within the array, flip it up and store its index
+        cards[chosenIndex].isFaceUp = true  // flip it up
+        tapCount += 1  // increase count
+        tappedCardIndices.append(chosenIndex)  // store the card's ID temporarily for later comparison
+
+        // We first check if tapCount is 2.  If so, compare, match/mismatch
+        if tapCount == 2 {
+            let firstIndex = tappedCardIndices[0]  // store the first card's ID
+            let secondIndex = tappedCardIndices[1]  // store the second card's ID
+
+            if cards[firstIndex].content == cards[secondIndex].content {  // if both IDs match:
+                // MATCH: toggle their respective property within the array.
+                cards[firstIndex].isMatched = true
+                cards[secondIndex].isMatched = true
+                score += 2  // the user got 2 points here
+            } else {
+                // MISMATCH
+                // Score -1 for each card previously seen.  Tags both cards as been seen before, and for each missmatch in this case, the user gets -1 score.
+                if cards[firstIndex].hasBeenSeen { score -= 1 }  // checks if this is the first time they've been seen.  If not, -1 points for the user.
+                if cards[secondIndex].hasBeenSeen { score -= 1 }
+                // Mark both as seen
+                cards[firstIndex].hasBeenSeen = true  // both cards need to get marked as seen before
+                cards[secondIndex].hasBeenSeen = true
+                // Flip both face down after evaluation (the View may animate this, but logic is here)
+                cards[firstIndex].isFaceUp = false
+                cards[secondIndex].isFaceUp = false
+            }
+
+            // Reset tap tracking
+            tapCount = 0  // reset the tap count for the next move
+            tappedCardIndices = []  // clear the temporary array thet held both cards during comparison
         }
     }
 }
+
