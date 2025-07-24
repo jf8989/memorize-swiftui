@@ -10,7 +10,7 @@ class MemorizeViewModel: ObservableObject {
 
     // The list of shuffled emojis; whenever this changes, the View will update.
     @Published var shuffledEmojis: [String] = []
-    
+
     // We'll let the View see the array of cards it needs to display.  In other words, this is the "deck" of cards.
     @Published private(set) var cards: [Card] = []
 
@@ -31,7 +31,7 @@ class MemorizeViewModel: ObservableObject {
 
     // We also need to return the theme's name
     var themeName: String {
-        selectedTheme?.name ?? "Please, select your theme!"
+        selectedTheme?.name ?? "Welcome to the Memory Game!\n\nDo you have what it takes?\n\nThen let's play!"
     }
 
     // *** FUNCTIONS ***

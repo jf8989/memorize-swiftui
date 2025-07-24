@@ -3,6 +3,8 @@
 import SwiftUI
 
 struct MemorizeView: View {
+    @Environment(\.colorScheme) var colorScheme
+
     @ObservedObject var viewModel = MemorizeViewModel()  // @ObservedObject means SwiftUI watches for changes and updates the View automatically.
 
     var body: some View {
@@ -15,10 +17,35 @@ struct MemorizeView: View {
         }
         .padding()
     }
-    
+
     // Title of each theme
     private var themeName: some View {
-        Text(viewModel.themeName)
+        let color =
+            (viewModel.themeColor == .black && colorScheme == .dark)
+            ? Color.white
+            : viewModel.themeColor
+
+        return Text(viewModel.themeName)
+            .font(.system(size: 36, weight: .bold, design: .rounded))
+            .foregroundColor(color)
+            .shadow(color: .black.opacity(0.20), radius: 4, x: 0, y: 2)
+            .padding(.top)
+            .padding(.bottom, 6)
+            .overlay(
+                Capsule()
+                    .frame(height: 4)
+                    .foregroundColor(color)
+                    .opacity(0.25)
+                    .offset(y: 26)
+            )
+            .animation(
+                .spring(
+                    response: 0.45,
+                    dampingFraction: 0.55,
+                    blendDuration: 0.7
+                ),
+                value: viewModel.themeName
+            )
     }
 
     // NEW GAME button (I'll use private var because the View is the only one that should be able to use this
