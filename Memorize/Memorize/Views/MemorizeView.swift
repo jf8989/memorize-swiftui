@@ -15,7 +15,7 @@ struct MemorizeView: View {
         }
         .padding()
     }
-    
+
     // NEW GAME button (I'll use private var because the View is the only one that should be able to use this
     private var newGameButton: some View {  // This is just the visual side of the button
         Button(action: newGameAction) {
@@ -30,10 +30,10 @@ struct MemorizeView: View {
         }
         .padding(.bottom)
     }
-    
+
     // This is the button's action.
     private func newGameAction() {
-        // TODO: let the view model handle it later
+        viewModel.newGame()
     }
 
     // *** CARDS ***
@@ -45,10 +45,10 @@ struct MemorizeView: View {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 120))]) {
                 ForEach(0..<viewModel.shuffledEmojis.count, id: \.self) {
                     index in
-//                    CardView(
-////                        content: viewModel.shuffledEmojis[index],
-////                        themeColor: viewModel.themeColor
-//                    )
+                    //                    CardView(
+                    //                        content: viewModel.shuffledEmojis[index],
+                    //                        themeColor: viewModel.themeColor
+                    //                    )
                 }
             }
         }
