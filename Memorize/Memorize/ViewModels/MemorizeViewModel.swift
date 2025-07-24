@@ -10,6 +10,9 @@ class MemorizeViewModel: ObservableObject {
 
     // The list of shuffled emojis; whenever this changes, the View will update.
     @Published var shuffledEmojis: [String] = []
+    
+    // We'll let the View see the array of cards it needs to display.  In other words, this is the "deck" of cards.
+    @Published private(set) var cards: [Card] = []
 
     // We need to tell the View what color to use in Color type.
     var themeColor: Color {
@@ -34,10 +37,18 @@ class MemorizeViewModel: ObservableObject {
     // *** FUNCTIONS ***
     // These is a reference to my themes array.  I'm declaring "themes" with the same name as my array just for the sake of clarity while working.
     func newGame() {
-        guard let theme = EmojiThemeModel.themes.randomElement() else { return }  // picks a random theme
+        print("newGame() called")
+        guard let theme = EmojiThemeModel.themes.randomElement() else { return }  // 1. Picks a random theme
         selectedTheme = theme  // assigns the theme to a variable
-        let chosenEmojis = theme.emojis.shuffled().prefix(theme.numberOfPairs)  // grab the emojis propery from the selected theme, shuffles them, and fetches them based on the number of pairs for that theme.  Every single emoji gets the same chance to show up.
-        shuffledEmojis = (chosenEmojis + chosenEmojis).shuffled()  // we create the pairs based on the ready-to-go emoji set
+        let chosenEmojis = theme.emojis.shuffled().prefix(theme.numberOfPairs)  // 2. Grabs the emojis propery from the selected theme, shuffles them, and fetches them based on the number of pairs for that theme.  Every single emoji gets the same chance to show up.
+        var cardId = 0
+        var newCards: [Card] = []
+        for emoji in chosenEmojis {
+            newCards.append(Card(content: emoji))
+            newCards.append(Card(content: emoji))
+        }
+        cards = newCards.shuffled()
+        print("\(theme.name)")
     }
 
 }

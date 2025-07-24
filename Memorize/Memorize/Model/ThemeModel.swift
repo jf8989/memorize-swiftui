@@ -2,6 +2,14 @@
 
 import SwiftUI
 
+struct Card: Identifiable {
+    let id = UUID()
+    let content: String
+    var isFaceUp: Bool = false
+    var isMatched: Bool = false
+    var hasBeenSeen: Bool = false
+}
+
 struct EmojiThemeModel: Identifiable {  // main struct for the theme and its properties
     let id = UUID()
     let name: String
