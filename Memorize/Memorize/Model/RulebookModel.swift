@@ -16,6 +16,18 @@ struct RulebookModel {
         self.cards = cards
     }
 
+    // keeps track of the 2 cards that need to be flipped down because they're not pairs
+    var indicesOfFaceUpUnmatchedCards: [Int]? {
+        // we must make sure there's 2 indices and they're NOT matched
+        if tappedCardIndices.count == 2
+            && !cards[tappedCardIndices[0]].isMatched
+            && !cards[tappedCardIndices[1]].isMatched
+        {
+            return tappedCardIndices  // so, we return this or use it ONLY when the conditions are met, so it doesn't matter if we call it by accident
+        }
+        return nil
+    }
+
     // The main game logic
     mutating func choose(card: Card) {
         guard let chosenIndex = cards.firstIndex(where: { $0.id == card.id }),  // returns the index of the card the user tapped after looking for its ID within the cards array
@@ -40,6 +52,7 @@ struct RulebookModel {
                 cards[firstIndex].isMatched = true
                 cards[secondIndex].isMatched = true
                 score += 2  // the user got 2 points here
+                reset()
             } else {
                 // MISMATCH
                 // Score -1 for each card previously seen.  Tags both cards as been seen before, and for each missmatch in this case, the user gets -1 score.
@@ -48,14 +61,23 @@ struct RulebookModel {
                 // Mark both as seen
                 cards[firstIndex].hasBeenSeen = true  // both cards need to get marked as seen before
                 cards[secondIndex].hasBeenSeen = true
-                // Flip both face down after evaluation (the View may animate this, but logic is here)
-                cards[firstIndex].isFaceUp = false
-                cards[secondIndex].isFaceUp = false
             }
 
-            // Reset tap tracking
-            tapCount = 0  // reset the tap count for the next move
-            tappedCardIndices = []  // clear the temporary array thet held both cards during comparison
         }
+    }
+    
+    // Flips both UNMATCHEDe cards back down separately from everything else
+    mutating func flipBackUnmatchedCards() {
+        for idx in tappedCardIndices {
+            if !cards[idx].isMatched {
+                cards[idx].isFaceUp = false
+            }
+        }
+        reset()
+    }
+    
+    mutating func reset() {
+        tappedCardIndices = []
+        tapCount = 0
     }
 }

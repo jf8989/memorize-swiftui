@@ -48,7 +48,7 @@ struct MemorizeView: View {
                 value: viewModel.themeName
             )
     }
-    
+
     private var scoreView: some View {
         Text("Score: \(viewModel.score)")
             .font(.title2)
@@ -88,6 +88,7 @@ struct MemorizeView: View {
                         .onTapGesture {
                             viewModel.choose(card)
                         }
+                        .allowsHitTesting(viewModel.isTapEnabled)
                 }
             }
         }

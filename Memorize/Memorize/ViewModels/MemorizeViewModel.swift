@@ -10,6 +10,8 @@ class MemorizeViewModel: ObservableObject {
 
     // We'll let the View see the array of cards it needs to display.  In other words, this is the "deck" of cards.
     @Published var cards: [Card] = []
+    
+    @Published var isTapEnabled: Bool = true
 
     private var rulebook = RulebookModel(
         cards: []
@@ -58,6 +60,17 @@ class MemorizeViewModel: ObservableObject {
     func choose(_ card: Card) {
         rulebook.choose(card: card)  // passing the intent to the rulebook model
         cards = rulebook.cards  // we assign the modified array to the ViewModel's version to trigger the view change immediately
-        // TODO: implement scording update
+        
+        // we need to check if the two face up cards are unmatched so we can add a slight delay before we flip them down
+        if let unmatchedIndices = rulebook.indicesOfFaceUpUnmatchedCards {  // if this returns anything other than nill, it moves on
+            // block any taps for now
+            isTapEnabled = false
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                self.rulebook.flipBackUnmatchedCards()  // to flip both cards down after the delay
+                self.cards = self.rulebook.cards // to refresh the UI
+                self.isTapEnabled = true
+            }
+        }
     }
 }
