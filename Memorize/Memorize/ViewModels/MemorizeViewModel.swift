@@ -8,13 +8,12 @@ class MemorizeViewModel: ObservableObject {
     // This is my theme in use
     @Published private(set) var selectedTheme: EmojiThemeModel?
 
-    // The list of shuffled emojis; whenever this changes, the View will update.
-    @Published var shuffledEmojis: [String] = []
-
     // We'll let the View see the array of cards it needs to display.  In other words, this is the "deck" of cards.
     @Published var cards: [Card] = []
-    
-    private var rulebook = RulebookModel()  // reference to the Rulebook struct in the model
+
+    private var rulebook = RulebookModel(
+        cards: []
+    )  // reference to the Rulebook struct in the model
 
     // We need to tell the View what color to use in Color type.
     var themeColor: Color {
@@ -33,7 +32,8 @@ class MemorizeViewModel: ObservableObject {
 
     // We also need to return the theme's name
     var themeName: String {
-        selectedTheme?.name ?? "Welcome to the Memory Game!\n\nDo you have what it takes?\n\nThen let's play!"
+        selectedTheme?.name
+            ?? "Welcome to the Memory Game!\n\nDo you have what it takes?\n\nThen let's play!"
     }
 
     // *** FUNCTIONS ***
@@ -42,18 +42,18 @@ class MemorizeViewModel: ObservableObject {
         guard let theme = EmojiThemeModel.themes.randomElement() else { return }  // 1. Picks a random theme
         selectedTheme = theme  // assigns the theme to a variable
         let chosenEmojis = theme.emojis.shuffled().prefix(theme.numberOfPairs)  // 2. Grabs the emojis propery from the selected theme, shuffles them, and fetches them based on the number of pairs for that theme.  Every single emoji gets the same chance to show up.
-        var newCards: [Card] = []
-        for emoji in chosenEmojis {
-            newCards.append(Card(content: emoji))
-            newCards.append(Card(content: emoji))
+        var newCards: [Card] = []  // we create the array that will hold the newly formed array of cards that will get rendered b y the view
+        for emoji in chosenEmojis {  // for every emoji, we'll create a duplicate so that we get pairs
+            newCards.append(Card(content: emoji))  // E1 is created with the right emoji, and appended to newCards array
+            newCards.append(Card(content: emoji))  // E1's clone, same process
         }
-        cards = newCards.shuffled()
-        rulebook = RulebookModel(cards: shuffled)
+        cards = newCards.shuffled()  // our array gets shuffled and stored into the main cards array, which has been waiting for it all along
+        rulebook = RulebookModel(cards: cards)  // creating an instance of RulebookModel with its own copy of the Card array, its latest version.
     }
-    
+
     func choose(_ card: Card) {
         rulebook.choose(card: card)  // passing the intent to the rulebook model
-        cards = rulebook.cards  // re-renders the view after checking the rules and applying them.  Basically, the cycle of showing the card grid starts over ever time the user taps on a card.
+        cards = rulebook.cards  // we assign the modified array to the ViewModel's version to trigger the view change immediately
         // TODO: implement scording update
     }
 }

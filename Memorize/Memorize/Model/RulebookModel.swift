@@ -1,5 +1,7 @@
 //  Model/RulebookModel.swift
 
+import Foundation
+
 struct RulebookModel {
     private(set) var cards: [Card]
     private(set) var score: Int = 0
@@ -7,7 +9,9 @@ struct RulebookModel {
     // Tap tracking
     private var tapCount: Int = 0
     private var tappedCardIndices: [Int] = []
-    
+
+    // it takes the array it just got from the ViewModel and saves it to its own "cards" property.
+    // Now it can reference the active array when looking for a specific card in the future.
     init(cards: [Card]) {
         self.cards = cards
     }
@@ -15,8 +19,9 @@ struct RulebookModel {
     // The main game logic
     mutating func choose(card: Card) {
         guard let chosenIndex = cards.firstIndex(where: { $0.id == card.id }),  // returns the index of the card the user tapped after looking for its ID within the cards array
-              !cards[chosenIndex].isFaceUp,  // checking if the cards are both faced down and not matched.
-              !cards[chosenIndex].isMatched else {
+            !cards[chosenIndex].isFaceUp,  // checking if the cards are both faced down and not matched.
+            !cards[chosenIndex].isMatched
+        else {
             return  // otherwise, exit
         }  // If we pass the guard, we proceed with the next logic.
 
@@ -54,4 +59,3 @@ struct RulebookModel {
         }
     }
 }
-
