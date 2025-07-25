@@ -22,7 +22,7 @@ struct EmojiThemeModel: Identifiable {  // main struct for the theme and its pro
         EmojiThemeModel(
             name: "Halloween",
             emojis: halloweenEmojis,
-            numberOfPairs: 11,
+            numberOfPairs: 10,
             color: "orange"
         ),
         EmojiThemeModel(

@@ -35,6 +35,10 @@ class MemorizeViewModel: ObservableObject {
         selectedTheme?.name
             ?? "Welcome to the Memory Game!\n\nDo you have what it takes?\n\nThen let's play!"
     }
+    
+    var score: Int {
+        rulebook.score
+    }
 
     // *** FUNCTIONS ***
     // These is a reference to my themes array.  I'm declaring "themes" with the same name as my array just for the sake of clarity while working.

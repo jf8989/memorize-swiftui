@@ -9,6 +9,7 @@ struct MemorizeView: View {
 
     var body: some View {
         VStack {  // we're aligning all of our views vertically in order to organize the UI
+            scoreView
             themeName
             Spacer()
             cards  // we place the card's grid at the top
@@ -46,6 +47,13 @@ struct MemorizeView: View {
                 ),
                 value: viewModel.themeName
             )
+    }
+    
+    private var scoreView: some View {
+        Text("Score: \(viewModel.score)")
+            .font(.title2)
+            .fontWeight(.semibold)
+            .foregroundColor(.blue)
     }
 
     // NEW GAME button (I'll use private var because the View is the only one that should be able to use this.
