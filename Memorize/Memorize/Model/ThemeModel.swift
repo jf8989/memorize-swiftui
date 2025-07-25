@@ -14,9 +14,9 @@ struct EmojiThemeModel: Identifiable {  // main struct for the theme and its pro
     let id = UUID()
     let name: String
     let emojis: [String]
-    let numberOfPairs: Int
+    let numberOfPairs: Int?
     let color: String
-
+    
     // Main emoji array for the themes, extending its properties using the struct
     static let themes: [EmojiThemeModel] = [
         EmojiThemeModel(
@@ -28,7 +28,7 @@ struct EmojiThemeModel: Identifiable {  // main struct for the theme and its pro
         EmojiThemeModel(
             name: "Animals",
             emojis: animalEmojis,
-            numberOfPairs: 10,
+            numberOfPairs: nil,
             color: "gray"
         ),
         EmojiThemeModel(
@@ -40,7 +40,7 @@ struct EmojiThemeModel: Identifiable {  // main struct for the theme and its pro
         EmojiThemeModel(
             name: "Space",
             emojis: spaceEmojis,
-            numberOfPairs: 8,
+            numberOfPairs: nil,
             color: "black"
         ),
         EmojiThemeModel(
@@ -52,7 +52,7 @@ struct EmojiThemeModel: Identifiable {  // main struct for the theme and its pro
         EmojiThemeModel(
             name: "Technology",
             emojis: techEmojis,
-            numberOfPairs: 6,
+            numberOfPairs: nil,
             color: "purple"
         ),
         EmojiThemeModel(
@@ -64,7 +64,7 @@ struct EmojiThemeModel: Identifiable {  // main struct for the theme and its pro
         EmojiThemeModel(
             name: "Emotions",
             emojis: emotionEmojis,
-            numberOfPairs: 9,
+            numberOfPairs: nil,
             color: "pink"
         ),
         EmojiThemeModel(
@@ -76,7 +76,7 @@ struct EmojiThemeModel: Identifiable {  // main struct for the theme and its pro
         EmojiThemeModel(
             name: "Fantasy",
             emojis: fantasyEmojis,
-            numberOfPairs: 9,
+            numberOfPairs: nil,
             color: "teal"
         ),
         EmojiThemeModel(
@@ -88,7 +88,7 @@ struct EmojiThemeModel: Identifiable {  // main struct for the theme and its pro
         EmojiThemeModel(
             name: "Nature",
             emojis: natureEmojis,
-            numberOfPairs: 10,
+            numberOfPairs: nil,
             color: "cyan"
         ),
     ]

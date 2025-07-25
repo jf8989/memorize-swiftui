@@ -18,21 +18,28 @@ class MemorizeViewModel: ObservableObject {
     )  // reference to the Rulebook struct in the model
     
     var safeNumberOfPairs: Int {
-        guard let theme = selectedTheme else { return 8}  // if it exist, use it; otherwise, default to 8.
+        guard let theme = selectedTheme else { return 8 }
         
-        let pairs = theme.numberOfPairs
-        let emojiCOunt = theme.emojis.count
+        let emojiCount = theme.emojis.count
         
-        if pairs <= emojiCOunt && pairs > 4 {
-            return pairs
-        } else if pairs <= 4 {
-            return 8
-        } else if pairs > emojiCOunt {
-            return emojiCOunt
+        if let pairs = theme.numberOfPairs {
+            if pairs <= emojiCount && pairs > 4 {
+                return pairs
+            } else if pairs <= 4 {
+                return 8
+            } else if pairs > emojiCount {
+                return 9
+            } else {
+                return 7
+            }
         } else {
-            return 8
+            let minPairs = min(6, 9)
+            let maxPairs = 10
+            if minPairs > maxPairs { return maxPairs }
+            return Int.random(in: minPairs...maxPairs)
         }
     }
+
 
     // We need to tell the View what color to use in Color type.
     var themeColor: Color {
