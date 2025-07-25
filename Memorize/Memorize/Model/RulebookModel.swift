@@ -62,7 +62,6 @@ struct RulebookModel {
                 cards[firstIndex].hasBeenSeen = true  // both cards need to get marked as seen before
                 cards[secondIndex].hasBeenSeen = true
             }
-
         }
     }
     

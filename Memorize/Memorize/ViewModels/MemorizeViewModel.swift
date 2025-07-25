@@ -12,10 +12,27 @@ class MemorizeViewModel: ObservableObject {
     @Published var cards: [Card] = []
     
     @Published var isTapEnabled: Bool = true
-
+    
     private var rulebook = RulebookModel(
         cards: []
     )  // reference to the Rulebook struct in the model
+    
+    var safeNumberOfPairs: Int {
+        guard let theme = selectedTheme else { return 8}  // if it exist, use it; otherwise, default to 8.
+        
+        let pairs = theme.numberOfPairs
+        let emojiCOunt = theme.emojis.count
+        
+        if pairs <= emojiCOunt && pairs > 4 {
+            return pairs
+        } else if pairs <= 4 {
+            return 8
+        } else if pairs > emojiCOunt {
+            return emojiCOunt
+        } else {
+            return 8
+        }
+    }
 
     // We need to tell the View what color to use in Color type.
     var themeColor: Color {
@@ -53,7 +70,7 @@ class MemorizeViewModel: ObservableObject {
     func newGame() {
         guard let theme = EmojiThemeModel.themes.randomElement() else { return }  // 1. Picks a random theme
         selectedTheme = theme  // assigns the theme to a variable
-        let chosenEmojis = theme.emojis.shuffled().prefix(theme.numberOfPairs)  // 2. Grabs the emojis propery from the selected theme, shuffles them, and fetches them based on the number of pairs for that theme.  Every single emoji gets the same chance to show up.
+        let chosenEmojis = theme.emojis.shuffled().prefix(safeNumberOfPairs)  // 2. Grabs the emojis propery from the selected theme, shuffles them, and fetches them based on the number of pairs for that theme.  Every single emoji gets the same chance to show up.
         var newCards: [Card] = []  // we create the array that will hold the newly formed array of cards that will get rendered b y the view
         for emoji in chosenEmojis {  // for every emoji, we'll create a duplicate so that we get pairs
             newCards.append(Card(content: emoji))  // E1 is created with the right emoji, and appended to newCards array

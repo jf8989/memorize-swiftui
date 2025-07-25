@@ -114,7 +114,7 @@ struct CardView: View {
                 Text(card.content)
                     .font(.largeTitle)
             } else if card.isMatched {
-                base.opacity(0.25)
+                base.opacity(0)
             } else {
                 base.foregroundColor(themeColor)
                     .shadow(radius: 2.5)
