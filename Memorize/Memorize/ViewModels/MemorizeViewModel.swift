@@ -10,18 +10,18 @@ class MemorizeViewModel: ObservableObject {
 
     // We'll let the View see the array of cards it needs to display.  In other words, this is the "deck" of cards.
     @Published var cards: [Card] = []
-    
+
     @Published var isTapEnabled: Bool = true
-    
+
     private var rulebook = RulebookModel(
         cards: []
     )  // reference to the Rulebook struct in the model
-    
+
     var safeNumberOfPairs: Int {
         guard let theme = selectedTheme else { return 8 }
-        
+
         let emojiCount = theme.emojis.count
-        
+
         if let pairs = theme.numberOfPairs {
             if pairs <= emojiCount && pairs > 4 {
                 return pairs
@@ -40,26 +40,28 @@ class MemorizeViewModel: ObservableObject {
         }
     }
 
+    var isGradient: Bool {  // First, let's check if we've been given a value for a gradient.
+        selectedTheme?.colorG != nil
+    }
 
     // We need to tell the View what color to use in Color type.
     var themeColor: Color {
         guard let colorName = selectedTheme?.color else { return .gray }
-        switch colorName {
-        case "orange": return .orange
-        case "yellow": return .yellow
-        case "green": return .green
-        case "black": return .black
-        case "red": return .red
-        case "purple": return .purple
-        case "gray": return .gray
-        case "pink": return .pink
-        case "brown": return .brown
-        case "teal": return .teal
-        case "blue": return .blue
-        case "cyan": return .cyan
-        default:
-            return .gray
-        }
+        return colorFromString(colorName)
+    }
+
+    var themeGradientColor: LinearGradient? {
+        guard let color1Name = selectedTheme?.color,
+            let color2Name = selectedTheme?.colorG
+        else { return nil }
+        let color1 = colorFromString(color1Name)
+        let color2 = colorFromString(color2Name)
+
+        return LinearGradient(
+            colors: [color1, color2],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
     }
 
     // We also need to return the theme's name
@@ -67,12 +69,15 @@ class MemorizeViewModel: ObservableObject {
         selectedTheme?.name
             ?? "Welcome to the Memory Game!\n\nDo you have what it takes?\n\nThen let's play!"
     }
-    
+
     var score: Int {
         rulebook.score
     }
 
     // *** FUNCTIONS ***
+
+    // * Model-related *
+
     // These is a reference to my themes array.  I'm declaring "themes" with the same name as my array just for the sake of clarity while working.
     func newGame() {
         guard let theme = EmojiThemeModel.themes.randomElement() else { return }  // 1. Picks a random theme
@@ -90,17 +95,39 @@ class MemorizeViewModel: ObservableObject {
     func choose(_ card: Card) {
         rulebook.choose(card: card)  // passing the intent to the rulebook model
         cards = rulebook.cards  // we assign the modified array to the ViewModel's version to trigger the view change immediately
-        
+
         // we need to check if the two face up cards are unmatched so we can add a slight delay before we flip them down
         if rulebook.indicesOfFaceUpUnmatchedCards != nil {  // if this returns anything other than nill, it moves on
             // block any taps for now
             isTapEnabled = false
-            
+
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 self.rulebook.flipBackUnmatchedCards()  // to flip both cards down after the delay
-                self.cards = self.rulebook.cards // to refresh the UI
+                self.cards = self.rulebook.cards  // to refresh the UI
                 self.isTapEnabled = true
             }
+        }
+    }
+
+    // * Utility *
+
+    // Helper that tranforms my strings to color
+    func colorFromString(_ name: String) -> Color {
+        switch name {
+        case "orange": return .orange
+        case "yellow": return .yellow
+        case "green": return .green
+        case "black": return .black
+        case "red": return .red
+        case "purple": return .purple
+        case "gray": return .gray
+        case "pink": return .pink
+        case "brown": return .brown
+        case "teal": return .teal
+        case "blue": return .blue
+        case "cyan": return .cyan
+        default:
+            return .gray
         }
     }
 }

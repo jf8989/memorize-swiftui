@@ -84,7 +84,11 @@ struct MemorizeView: View {
         if !viewModel.cards.isEmpty {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 120))]) {
                 ForEach(viewModel.cards) { card in  // Receives the entire array of cards set in the ViewModel.
-                    CardView(card: card, themeColor: viewModel.themeColor)
+                    CardView(
+                        card: card,
+                        themeColor: viewModel.themeColor,
+                        themeGradient: viewModel.themeGradientColor
+                    )
                         .onTapGesture {
                             viewModel.choose(card)
                         }
@@ -99,8 +103,9 @@ struct MemorizeView: View {
 // in the game.  It can be used in multiple places, and is a good example of how to create reusable components
 // in SwiftUI.
 struct CardView: View {
-    let card: Card  // receives the Card struct from the model
+    let card: Card
     let themeColor: Color
+    let themeGradient: LinearGradient?  // it could be null
 
     var body: some View {
         ZStack {
@@ -116,17 +121,23 @@ struct CardView: View {
             } else if card.isMatched {
                 base.opacity(0)
             } else {
-                base.foregroundColor(themeColor)
-                    .shadow(radius: 2.5)
+                if let gradient = themeGradient {  // if gradient is given
+                    base.fill(gradient)
+                        .shadow(radius: 2.5)
+                } else {
+                    base.foregroundColor(themeColor)  // use themeColor if gradient not given
+                        .shadow(radius: 2.5)
+                }
                 Text("?")
                     .bold()
                     .font(.largeTitle)
                     .fontDesign(.serif)
             }
         }
-        .allowsHitTesting(!card.isMatched)  // If cards aren't matched, we allow taps on them; otherwise, they become unclickable.
+        .allowsHitTesting(!card.isMatched)
     }
 }
+
 
 #Preview {
     MemorizeView()

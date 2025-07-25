@@ -16,6 +16,7 @@ struct EmojiThemeModel: Identifiable {  // main struct for the theme and its pro
     let emojis: [String]
     let numberOfPairs: Int?
     let color: String
+    let colorG: String?
     
     // Main emoji array for the themes, extending its properties using the struct
     static let themes: [EmojiThemeModel] = [
@@ -23,73 +24,85 @@ struct EmojiThemeModel: Identifiable {  // main struct for the theme and its pro
             name: "Halloween",
             emojis: halloweenEmojis,
             numberOfPairs: 10,
-            color: "orange"
+            color: "orange",
+            colorG: "purple"
         ),
         EmojiThemeModel(
             name: "Animals",
             emojis: animalEmojis,
             numberOfPairs: nil,
-            color: "gray"
+            color: "gray",
+            colorG: "green"
         ),
         EmojiThemeModel(
             name: "Vehicles",
             emojis: vehicleEmojis,
             numberOfPairs: 9,
-            color: "green"
+            color: "green",
+            colorG: nil
         ),
         EmojiThemeModel(
             name: "Space",
             emojis: spaceEmojis,
             numberOfPairs: nil,
-            color: "black"
+            color: "black",
+            colorG: "blue"
         ),
         EmojiThemeModel(
             name: "Christmas",
             emojis: christmasEmojis,
             numberOfPairs: 7,
-            color: "red"
+            color: "red",
+            colorG: "green"
         ),
         EmojiThemeModel(
             name: "Technology",
             emojis: techEmojis,
             numberOfPairs: nil,
-            color: "purple"
+            color: "purple",
+            colorG: "blue"
         ),
         EmojiThemeModel(
             name: "Music",
             emojis: musicEmojis,
             numberOfPairs: 10,
-            color: "yellow"
+            color: "yellow",
+            colorG: "purple"
         ),
         EmojiThemeModel(
             name: "Emotions",
             emojis: emotionEmojis,
             numberOfPairs: nil,
-            color: "pink"
+            color: "pink",
+            colorG: "yellow"
         ),
         EmojiThemeModel(
             name: "Food",
             emojis: foodEmojis,
             numberOfPairs: 10,
-            color: "brown"
+            color: "brown",
+            colorG: "orange"
         ),
         EmojiThemeModel(
             name: "Fantasy",
             emojis: fantasyEmojis,
             numberOfPairs: nil,
-            color: "teal"
+            color: "teal",
+            colorG: "purple"
         ),
         EmojiThemeModel(
             name: "Sports",
             emojis: sportsEmojis,
             numberOfPairs: 10,
-            color: "blue"
+            color: "blue",
+            colorG: "green"
         ),
         EmojiThemeModel(
             name: "Nature",
             emojis: natureEmojis,
             numberOfPairs: nil,
-            color: "cyan"
+            color: "cyan",
+            colorG: "green"
         ),
     ]
 }
