@@ -29,7 +29,7 @@ struct EmojiThemeModel: Identifiable {  // main struct for the theme and its pro
             name: "Animals",
             emojis: animalEmojis,
             numberOfPairs: 10,
-            color: "yellow"
+            color: "gray"
         ),
         EmojiThemeModel(
             name: "Vehicles",
@@ -55,6 +55,42 @@ struct EmojiThemeModel: Identifiable {  // main struct for the theme and its pro
             numberOfPairs: 6,
             color: "purple"
         ),
+        EmojiThemeModel(
+            name: "Music",
+            emojis: musicEmojis,
+            numberOfPairs: 10,
+            color: "yellow"
+        ),
+        EmojiThemeModel(
+            name: "Emotions",
+            emojis: emotionEmojis,
+            numberOfPairs: 9,
+            color: "pink"
+        ),
+        EmojiThemeModel(
+            name: "Food",
+            emojis: foodEmojis,
+            numberOfPairs: 10,
+            color: "brown"
+        ),
+        EmojiThemeModel(
+            name: "Fantasy",
+            emojis: fantasyEmojis,
+            numberOfPairs: 9,
+            color: "teal"
+        ),
+        EmojiThemeModel(
+            name: "Sports",
+            emojis: sportsEmojis,
+            numberOfPairs: 10,
+            color: "blue"
+        ),
+        EmojiThemeModel(
+            name: "Nature",
+            emojis: natureEmojis,
+            numberOfPairs: 10,
+            color: "cyan"
+        ),
     ]
 }
 
@@ -62,18 +98,53 @@ struct EmojiThemeModel: Identifiable {  // main struct for the theme and its pro
 let halloweenEmojis = [
     "👻", "🎃", "🕷️", "💀", "🧟‍♂️", "🦇", "🧙‍♀️", "🍬", "🍭", "🪦", "🧛‍♂️", "🧞‍♂️", "☠️", "🧹", "🕸️",
 ]
+
 let animalEmojis = [
     "🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🦁", "🐸", "🐵", "🦄", "🦉",
 ]
+
 let vehicleEmojis = [
     "🚗", "🚕", "🚙", "🚌", "🚎", "🏎️", "🚓", "🚑", "🚒", "🚚", "🚜", "🛻", "🚲",
 ]
+
 let spaceEmojis = [
     "🚀", "🪐", "🌑", "🛸", "👽", "🌟", "☄️", "🛰️", "🌌", "🔭", "🌠", "🛕",
 ]
+
 let christmasEmojis = [
     "🎄", "🎅", "🤶", "🦌", "⛄", "❄️", "🛷", "🎁", "🕯️", "🔔", "🌟",
 ]
+
 let techEmojis = [
     "💻", "🖥️", "🖨️", "🕹️", "🧑‍💻", "📱", "📡", "🛰️", "⌨️", "💾",
+]
+
+// 🎶 Music theme
+let musicEmojis = [
+    "🎵", "🎶", "🎸", "🥁", "🎷", "🎺", "🎹", "🎧", "🎤", "📻", "🪕", "🪘",
+]
+
+// 😊 Emotions theme
+let emotionEmojis = [
+    "😀", "😂", "😅", "😍", "😭", "😡", "😱", "🥰", "🤔", "😴", "🥺", "🤯", "😎",
+]
+
+// 🍕 Food theme
+let foodEmojis = [
+    "🍕", "🍔", "🍟", "🌭", "🍿", "🥓", "🥞", "🍣", "🍩", "🍪", "🍉", "🍇", "🍓", "🍜",
+]
+
+// ⚔️ Fantasy theme
+let fantasyEmojis = [
+    "🧙‍♂️", "🧝‍♀️", "🧚‍♂️", "🧛‍♀️", "🐉", "🦄", "🗡️", "⚔️", "🛡️", "📜", "🔮", "🏰", "🪄",
+]
+
+// ⚽ Sports theme
+let sportsEmojis = [
+    "⚽", "🏀", "🏈", "⚾", "🎾", "🏐", "🏉", "🥏", "🥊", "🥋", "⛳", "🏓", "🏸",
+]
+
+// 🌤️ Weather/Nature theme
+let natureEmojis = [
+    "☀️", "🌤️", "🌧️", "⛈️", "🌩️", "🌪️", "🌈", "❄️", "🌊", "🍃", "🌸", "🌻", "🌳",
 ]

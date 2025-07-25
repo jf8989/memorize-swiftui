@@ -27,6 +27,12 @@ class MemorizeViewModel: ObservableObject {
         case "black": return .black
         case "red": return .red
         case "purple": return .purple
+        case "gray": return .gray
+        case "pink": return .pink
+        case "brown": return .brown
+        case "teal": return .teal
+        case "blue": return .blue
+        case "cyan": return .cyan
         default:
             return .gray
         }
@@ -62,7 +68,7 @@ class MemorizeViewModel: ObservableObject {
         cards = rulebook.cards  // we assign the modified array to the ViewModel's version to trigger the view change immediately
         
         // we need to check if the two face up cards are unmatched so we can add a slight delay before we flip them down
-        if let unmatchedIndices = rulebook.indicesOfFaceUpUnmatchedCards {  // if this returns anything other than nill, it moves on
+        if rulebook.indicesOfFaceUpUnmatchedCards != nil {  // if this returns anything other than nill, it moves on
             // block any taps for now
             isTapEnabled = false
             
