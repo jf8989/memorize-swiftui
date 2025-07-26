@@ -4,7 +4,7 @@ import Foundation
 
 struct RulebookModel {
     private(set) var cards: [Card]
-    private(set) var score: Int = 0
+    var score: Int = 0
 
     // Tap tracking
     private var tapCount: Int = 0
@@ -27,6 +27,8 @@ struct RulebookModel {
         }
         return nil
     }
+    
+    var isThisAmatch: Bool = false
 
     // The main game logic
     mutating func choose(card: Card) {
@@ -47,17 +49,17 @@ struct RulebookModel {
             let firstIndex = tappedCardIndices[0]  // store the first card's ID
             let secondIndex = tappedCardIndices[1]  // store the second card's ID
 
+            // It's a match:
             if cards[firstIndex].content == cards[secondIndex].content {  // if both IDs match:
                 // MATCH: toggle their respective property within the array.
+                isThisAmatch = true
                 cards[firstIndex].isMatched = true
                 cards[secondIndex].isMatched = true
-                score += 2  // the user got 2 points here
-                reset()
             } else {
                 // MISMATCH
                 // Score -1 for each card previously seen.  Tags both cards as been seen before, and for each missmatch in this case, the user gets -1 score.
-                if cards[firstIndex].hasBeenSeen { score -= 1 }  // checks if this is the first time they've been seen.  If not, -1 points for the user.
-                if cards[secondIndex].hasBeenSeen { score -= 1 }
+                if cards[firstIndex].hasBeenSeen { score -= 2 }  // checks if this is the first time they've been seen.  If not, -1 points for the user.
+                if cards[secondIndex].hasBeenSeen { score -= 2 }
                 // Mark both as seen
                 cards[firstIndex].hasBeenSeen = true  // both cards need to get marked as seen before
                 cards[secondIndex].hasBeenSeen = true
@@ -78,5 +80,6 @@ struct RulebookModel {
     mutating func reset() {
         tappedCardIndices = []
         tapCount = 0
+        isThisAmatch = false
     }
 }

@@ -74,11 +74,15 @@ class MemorizeViewModel: ObservableObject {
         rulebook.score
     }
 
-    var gameStartTime: Date?
-
     @Published var timeRemaining: Int = 120
 
     private var timer: Timer?
+
+    var gameStartTime: Date?
+
+    var isGameOver: Bool {
+        cards.allSatisfy { $0.isMatched }
+    }
 
     // *** FUNCTIONS ***
 
@@ -87,10 +91,11 @@ class MemorizeViewModel: ObservableObject {
     // These is a reference to my themes array.  I'm declaring "themes" with the same name as my array just for the sake of clarity while working.
     func newGame() {
         timer?.invalidate()  // reset any leftover timer just in case
-        gameStartTime = Date()  // fetch the current timestamp
+        gameStartTime = Date()
         timeRemaining = 120  // set the time remaining for the game
+        rulebook.score = 0
 
-        // set up timer
+        // kickstart the timer
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) {
             [weak self] _ in
             guard let self = self else { return }
@@ -99,7 +104,8 @@ class MemorizeViewModel: ObservableObject {
             } else {
                 self.timer?.invalidate()
                 self.timer = nil
-                isTapEnabled = false            }
+                self.isTapEnabled = false  // freeze the game when the time is over
+            }
         }
 
         guard let theme = EmojiThemeModel.themes.randomElement() else { return }  // 1. Picks a random theme
@@ -111,7 +117,7 @@ class MemorizeViewModel: ObservableObject {
             newCards.append(Card(content: emoji))  // E1's clone, same process
         }
         cards = newCards.shuffled()  // our array gets shuffled and stored into the main cards array, which has been waiting for it all along
-        rulebook = RulebookModel(cards: cards)  // creating an instance of RulebookModel with its own copy of the Card array, its latest version.
+        rulebook = RulebookModel(cards: cards)  // creating an instance of RulebookModel with its own copy of the Card array, its latest version
     }
 
     func choose(_ card: Card) {
@@ -120,13 +126,24 @@ class MemorizeViewModel: ObservableObject {
 
         // we need to check if the two face up cards are unmatched so we can add a slight delay before we flip them down
         if rulebook.indicesOfFaceUpUnmatchedCards != nil {  // if this returns anything other than nill, it moves on
-            // block any taps for now
-            isTapEnabled = false
+            timeRemaining -= 3
+            isTapEnabled = false  // block any taps for now
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 self.rulebook.flipBackUnmatchedCards()  // to flip both cards down after the delay
                 self.cards = self.rulebook.cards  // to refresh the UI
                 self.isTapEnabled = true
+            }
+        } else if rulebook.isThisAmatch {
+            // It's a match, award bonus time and points
+            let elapsed = elapsedTimeSinceStart()  // calculate how long it's been so far since the game started
+            let points = pointsForElapsedTime(elapsed)  // calculate how many points we need to award for this match (time dependent)
+            rulebook.score += points  // award those points to the player's score
+            timeRemaining += 4  // bonus time
+            rulebook.reset()
+            
+            if isGameOver {
+                endGame()
             }
         }
     }
@@ -150,6 +167,28 @@ class MemorizeViewModel: ObservableObject {
         case "cyan": return .cyan
         default:
             return .gray
+        }
+    }
+
+    func endGame() {
+        timer?.invalidate()
+        timer = nil
+        isTapEnabled = false
+    }
+
+    func elapsedTimeSinceStart() -> Int {
+        let now = Date()
+        return Int(now.timeIntervalSince(gameStartTime ?? now))
+    }
+
+    // determine how many points will be given depending on the elapsed time
+    func pointsForElapsedTime(_ elapsed: Int) -> Int {
+        switch elapsed {
+        case 0..<10: return 10
+        case 10..<20: return 8
+        case 20..<30: return 6
+        case 30..<40: return 4
+        default: return 2
         }
     }
 }
