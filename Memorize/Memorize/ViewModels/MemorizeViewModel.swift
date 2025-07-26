@@ -185,11 +185,11 @@ class MemorizeViewModel: ObservableObject {
     // determine how many points will be given depending on the elapsed time
     func pointsForElapsedTime(_ elapsed: Int) -> Int {
         switch elapsed {
-        case 0..<10: return 10
-        case 10..<20: return 8
-        case 20..<30: return 6
-        case 30..<40: return 4
-        default: return 2
+        case 0..<20: return 12
+        case 20..<40: return 10
+        case 40..<60: return 8
+        case 60..<80: return 5
+        default: return 3
         }
     }
 }

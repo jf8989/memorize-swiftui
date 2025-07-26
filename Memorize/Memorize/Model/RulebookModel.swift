@@ -58,8 +58,8 @@ struct RulebookModel {
             } else {
                 // MISMATCH
                 // Score -1 for each card previously seen.  Tags both cards as been seen before, and for each missmatch in this case, the user gets -1 score.
-                if cards[firstIndex].hasBeenSeen { score -= 2 }  // checks if this is the first time they've been seen.  If not, -1 points for the user.
-                if cards[secondIndex].hasBeenSeen { score -= 2 }
+                if cards[firstIndex].hasBeenSeen { score -= 4 }  // checks if this is the first time they've been seen.  If not, -1 points for the user.
+                if cards[secondIndex].hasBeenSeen { score -= 4 }
                 // Mark both as seen
                 cards[firstIndex].hasBeenSeen = true  // both cards need to get marked as seen before
                 cards[secondIndex].hasBeenSeen = true
