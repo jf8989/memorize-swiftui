@@ -74,12 +74,34 @@ class MemorizeViewModel: ObservableObject {
         rulebook.score
     }
 
+    var gameStartTime: Date?
+
+    @Published var timeRemaining: Int = 120
+
+    private var timer: Timer?
+
     // *** FUNCTIONS ***
 
     // * Model-related *
 
     // These is a reference to my themes array.  I'm declaring "themes" with the same name as my array just for the sake of clarity while working.
     func newGame() {
+        timer?.invalidate()  // reset any leftover timer just in case
+        gameStartTime = Date()  // fetch the current timestamp
+        timeRemaining = 120  // set the time remaining for the game
+
+        // set up timer
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) {
+            [weak self] _ in
+            guard let self = self else { return }
+            if self.timeRemaining > 0 {
+                self.timeRemaining -= 1
+            } else {
+                self.timer?.invalidate()
+                self.timer = nil
+                isTapEnabled = false            }
+        }
+
         guard let theme = EmojiThemeModel.themes.randomElement() else { return }  // 1. Picks a random theme
         selectedTheme = theme  // assigns the theme to a variable
         let chosenEmojis = theme.emojis.shuffled().prefix(safeNumberOfPairs)  // 2. Grabs the emojis propery from the selected theme, shuffles them, and fetches them based on the number of pairs for that theme.  Every single emoji gets the same chance to show up.
