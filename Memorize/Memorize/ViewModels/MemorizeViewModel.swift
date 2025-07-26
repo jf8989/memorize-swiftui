@@ -94,6 +94,7 @@ class MemorizeViewModel: ObservableObject {
         gameStartTime = Date()
         timeRemaining = 120  // set the time remaining for the game
         rulebook.score = 0
+        isTapEnabled = true
 
         // kickstart the timer
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) {
