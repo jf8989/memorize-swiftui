@@ -68,10 +68,14 @@ class MemorizeViewModel: ObservableObject {
     private var timer: Timer?
 
     var gameStartTime: Date?
+    
+    var isGameStarted: Bool = false
 
     var isGameOver: Bool {
         cards.allSatisfy { $0.isMatched }
     }
+    
+    var showScore: Bool = false
 
     deinit {  // Makes sure the timer is cleared when the viewmodel is deallocated from memory.
         timer?.invalidate()
@@ -88,6 +92,7 @@ class MemorizeViewModel: ObservableObject {
         timeRemaining = 120  // set the time remaining for the game
         rulebook.score = 0
         isTapEnabled = true
+        isGameStarted = true
 
         // kickstart the timer
         startTimer()
@@ -106,7 +111,7 @@ class MemorizeViewModel: ObservableObject {
 
     func choose(_ card: Card) {
         rulebook.choose(card: card)  // passing the intent to the rulebook model
-        cards = rulebook.cards  // we assign the modified array to the ViewModel's version to trigger the view change immediately
+        cards = rulebook.cards  // we assign the modified array to the ViewModel to trigger the view change immediately
 
         // we need to check if the two face up cards are unmatched so we can add a slight delay before we flip them down
         if rulebook.indicesOfFaceUpUnmatchedCards != nil {  // if this returns anything other than nill, it moves on

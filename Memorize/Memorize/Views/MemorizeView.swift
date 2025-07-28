@@ -9,10 +9,12 @@ struct MemorizeView: View {
 
     var body: some View {
         VStack {  // we're aligning all of our views vertically in order to organize the UI
-            HStack {
-                scoreView
-                Spacer()
-                timeView
+            if viewModel.isGameStarted == true {
+                HStack {
+                    scoreView
+                    Spacer()
+                    timeView
+                }
             }
             themeName
             Spacer()
