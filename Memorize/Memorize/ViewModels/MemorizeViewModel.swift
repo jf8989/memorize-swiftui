@@ -13,31 +13,21 @@ class MemorizeViewModel: ObservableObject {
 
     @Published var isTapEnabled: Bool = true
 
+    @Published var timeRemaining: Int = 120
+
     private var rulebook = RulebookModel(
         cards: []
     )  // reference to the Rulebook struct in the model
 
     var safeNumberOfPairs: Int {
         guard let theme = selectedTheme else { return 8 }
-
         let emojiCount = theme.emojis.count
 
         if let pairs = theme.numberOfPairs {
-            if pairs <= emojiCount && pairs > 4 {
-                return pairs
-            } else if pairs <= 4 {
-                return 8
-            } else if pairs > emojiCount {
-                return 9
-            } else {
-                return 7
-            }
-        } else {
-            let minPairs = min(6, 9)
-            let maxPairs = 10
-            if minPairs > maxPairs { return maxPairs }
-            return Int.random(in: minPairs...maxPairs)
+            if emojiCount == 0 { return 2 }
+            return min(max(pairs, 8), emojiCount)
         }
+        return max(min(emojiCount, 10), 8)
     }
 
     var isGradient: Bool {  // First, let's check if we've been given a value for a gradient.
@@ -54,6 +44,7 @@ class MemorizeViewModel: ObservableObject {
         guard let color1Name = selectedTheme?.color,
             let color2Name = selectedTheme?.colorG
         else { return nil }
+
         let color1 = colorFromString(color1Name)
         let color2 = colorFromString(color2Name)
 
@@ -74,14 +65,16 @@ class MemorizeViewModel: ObservableObject {
         rulebook.score
     }
 
-    @Published var timeRemaining: Int = 120
-
     private var timer: Timer?
 
     var gameStartTime: Date?
 
     var isGameOver: Bool {
         cards.allSatisfy { $0.isMatched }
+    }
+
+    deinit {  // Makes sure the timer is cleared when the viewmodel is deallocated from memory.
+        timer?.invalidate()
     }
 
     // *** FUNCTIONS ***
@@ -97,17 +90,7 @@ class MemorizeViewModel: ObservableObject {
         isTapEnabled = true
 
         // kickstart the timer
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) {
-            [weak self] _ in
-            guard let self = self else { return }
-            if self.timeRemaining > 0 {
-                self.timeRemaining -= 1
-            } else {
-                self.timer?.invalidate()
-                self.timer = nil
-                self.isTapEnabled = false  // freeze the game when the time is over
-            }
-        }
+        startTimer()
 
         guard let theme = EmojiThemeModel.themes.randomElement() else { return }  // 1. Picks a random theme
         selectedTheme = theme  // assigns the theme to a variable
@@ -127,22 +110,24 @@ class MemorizeViewModel: ObservableObject {
 
         // we need to check if the two face up cards are unmatched so we can add a slight delay before we flip them down
         if rulebook.indicesOfFaceUpUnmatchedCards != nil {  // if this returns anything other than nill, it moves on
-            timeRemaining -= 3
+            timeRemaining -= 5  // time penalization for a mismatch
             isTapEnabled = false  // block any taps for now
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 self.rulebook.flipBackUnmatchedCards()  // to flip both cards down after the delay
                 self.cards = self.rulebook.cards  // to refresh the UI
-                self.isTapEnabled = true
+                if self.timeRemaining > 0 && !self.isGameOver {  // just checking if it's actually alright to re-enable taps
+                    self.isTapEnabled = true
+                }
             }
         } else if rulebook.isThisAmatch {
             // It's a match, award bonus time and points
             let elapsed = elapsedTimeSinceStart()  // calculate how long it's been so far since the game started
             let points = pointsForElapsedTime(elapsed)  // calculate how many points we need to award for this match (time dependent)
             rulebook.score += points  // award those points to the player's score
-            timeRemaining += 4  // bonus time
+            //            timeRemaining += 4  // no more bonus time
             rulebook.reset()
-            
+
             if isGameOver {
                 endGame()
             }
@@ -171,10 +156,17 @@ class MemorizeViewModel: ObservableObject {
         }
     }
 
-    func endGame() {
-        timer?.invalidate()
-        timer = nil
-        isTapEnabled = false
+    func startTimer() {
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) {
+            [weak self] _ in
+            guard let self = self else { return }
+            if self.timeRemaining > 0 {
+                self.timeRemaining -= 1
+            }
+            if self.timeRemaining <= 0 {
+                self.endGame()
+            }
+        }
     }
 
     func elapsedTimeSinceStart() -> Int {
@@ -185,11 +177,17 @@ class MemorizeViewModel: ObservableObject {
     // determine how many points will be given depending on the elapsed time
     func pointsForElapsedTime(_ elapsed: Int) -> Int {
         switch elapsed {
-        case 0..<20: return 12
-        case 20..<40: return 10
-        case 40..<60: return 8
-        case 60..<80: return 5
-        default: return 3
+        case 0..<20: return 4
+        case 20..<40: return 3
+        default: return 2
         }
     }
+
+    func endGame() {
+        timer?.invalidate()
+        timer = nil
+        isTapEnabled = false
+        timeRemaining = 0
+    }
+
 }

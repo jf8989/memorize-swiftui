@@ -23,7 +23,7 @@ struct EmojiThemeModel: Identifiable {  // main struct for the theme and its pro
         EmojiThemeModel(
             name: "Halloween",
             emojis: halloweenEmojis,
-            numberOfPairs: 10,
+            numberOfPairs: 0,
             color: "orange",
             colorG: "purple"
         ),
@@ -51,7 +51,7 @@ struct EmojiThemeModel: Identifiable {  // main struct for the theme and its pro
         EmojiThemeModel(
             name: "Christmas",
             emojis: christmasEmojis,
-            numberOfPairs: 7,
+            numberOfPairs: 2,
             color: "red",
             colorG: "green"
         ),
@@ -65,7 +65,7 @@ struct EmojiThemeModel: Identifiable {  // main struct for the theme and its pro
         EmojiThemeModel(
             name: "Music",
             emojis: musicEmojis,
-            numberOfPairs: 10,
+            numberOfPairs: 20,
             color: "yellow",
             colorG: "purple"
         ),
@@ -79,7 +79,7 @@ struct EmojiThemeModel: Identifiable {  // main struct for the theme and its pro
         EmojiThemeModel(
             name: "Food",
             emojis: foodEmojis,
-            numberOfPairs: 10,
+            numberOfPairs: 20,
             color: "brown",
             colorG: "orange"
         ),

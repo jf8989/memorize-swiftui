@@ -5,7 +5,7 @@ import SwiftUI
 struct MemorizeView: View {
     @Environment(\.colorScheme) var colorScheme  // This allows me to decide what happens when the Color Scheme is "dark", preventing color-masking.
 
-    @ObservedObject var viewModel = MemorizeViewModel()  // @ObservedObject means SwiftUI watches for changes and updates the View automatically.
+    @StateObject var viewModel = MemorizeViewModel()  // @ObservedObject means SwiftUI watches for changes and updates the View automatically.
 
     var body: some View {
         VStack {  // we're aligning all of our views vertically in order to organize the UI
@@ -69,7 +69,7 @@ struct MemorizeView: View {
 
     // NEW GAME button (I'll use private var because the View is the only one that should be able to use this.
     private var newGameButton: some View {  // This is just the visual side of the button
-        Button(action: newGameAction) {
+        Button(action: viewModel.newGame) {
             Text("New Game")
                 .font(.headline)
                 .padding()
@@ -82,29 +82,28 @@ struct MemorizeView: View {
         .padding(.bottom)
     }
 
-    // This is the button's action.
-    private func newGameAction() {
-        viewModel.newGame()
-    }
-
     // *** CARDS ***
 
     // main grid where the cards reside
     @ViewBuilder
     var cards: some View {
         if !viewModel.cards.isEmpty {
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 120))]) {
-                ForEach(viewModel.cards) { card in  // Receives the entire array of cards set in the ViewModel.
-                    CardView(
-                        card: card,
-                        themeColor: viewModel.themeColor,
-                        themeGradient: viewModel.themeGradientColor
-                    )
-                    .onTapGesture {
-                        viewModel.choose(card)
+            ScrollView {
+                LazyVGrid(
+                    columns: [GridItem(.adaptive(minimum: 70), spacing: 12)],
+                    spacing: 12
+                ) {
+                    ForEach(viewModel.cards) { card in
+                        CardView(
+                            card: card,
+                            themeColor: viewModel.themeColor,
+                            themeGradient: viewModel.themeGradientColor
+                        )
+                        .onTapGesture { viewModel.choose(card) }
+                        .allowsHitTesting(viewModel.isTapEnabled)
                     }
-                    .allowsHitTesting(viewModel.isTapEnabled)
                 }
+                .padding(.horizontal, 8)
             }
         }
     }
@@ -116,41 +115,60 @@ struct MemorizeView: View {
 struct CardView: View {
     let card: Card
     let themeColor: Color
-    let themeGradient: LinearGradient?  // it could be null
+    let themeGradient: LinearGradient?
+
+    // Compute the rotation
+    var rotation: Double {
+        card.isFaceUp ? 0 : 180
+    }
 
     var body: some View {
         ZStack {
-            let base = RoundedRectangle(cornerRadius: 12)
-
-            if card.isFaceUp {
-                base.foregroundColor(.white)
-                    .shadow(radius: 2.5)
-                base.strokeBorder(lineWidth: 2)
-                    .foregroundColor(.orange)
-                Text(card.content)
-                    .font(.largeTitle)
-            } else if card.isMatched {
-                base.opacity(0)
+            if card.isMatched {
+                // Hide matched cards
+                EmptyView()
             } else {
-                if let gradient = themeGradient {  // if gradient is given
-                    base.fill(gradient)
+                // The card front (shows emoji)
+                Group {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.white)
                         .shadow(radius: 2.5)
-                } else {
-                    base.foregroundColor(themeColor)  // use themeColor if gradient not given
-                        .shadow(radius: 2.5)
+                    RoundedRectangle(cornerRadius: 12)
+                        .strokeBorder(lineWidth: 2)
+                        .foregroundColor(.orange)
+                    Text(card.content)
+                        .font(.largeTitle)
                 }
-                Text("?")
-                    .bold()
-                    .font(.largeTitle)
-                    .fontDesign(.serif)
+                .opacity(card.isFaceUp ? 1.0 : 0.0)
+                // The card back (shows ?)
+                Group {
+                    if let gradient = themeGradient {
+                        RoundedRectangle(cornerRadius: 12).fill(gradient)
+                            .shadow(radius: 2.5)
+                    } else {
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(themeColor)
+                            .shadow(radius: 2.5)
+                    }
+                    Text("?")
+                        .bold()
+                        .font(.largeTitle)
+                        .fontDesign(.serif)
+                        // Rotate the "?" 180° on the Y axis to correct mirroring
+                        .rotation3DEffect(
+                            .degrees(180),
+                            axis: (x: 0, y: 1, z: 0)
+                        )
+                }
+                .opacity(card.isFaceUp ? 0.0 : 1.0)
             }
         }
-        .opacity(card.isMatched ? 0 : 1).allowsHitTesting(!card.isMatched)
+        .aspectRatio(2 / 3, contentMode: .fit)
+        .opacity(card.isMatched ? 0 : 1)
+        .allowsHitTesting(!card.isMatched)
         .scaleEffect(card.isFaceUp ? 1.08 : 1.0)
-        .animation(
-            .spring(response: 0.22, dampingFraction: 0.7),
-            value: card.isFaceUp
-        )
+        .rotation3DEffect(.degrees(rotation), axis: (x: 0, y: 1, z: 0))
+        .animation(.easeInOut(duration: 0.35), value: card.isFaceUp)
     }
 }
 

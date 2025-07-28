@@ -27,7 +27,7 @@ struct RulebookModel {
         }
         return nil
     }
-    
+
     var isThisAmatch: Bool = false
 
     // The main game logic
@@ -58,16 +58,16 @@ struct RulebookModel {
             } else {
                 // MISMATCH
                 // Score -1 for each card previously seen.  Tags both cards as been seen before, and for each missmatch in this case, the user gets -1 score.
-                if cards[firstIndex].hasBeenSeen { score -= 4 }  // checks if this is the first time they've been seen.  If not, -1 points for the user.
-                if cards[secondIndex].hasBeenSeen { score -= 4 }
+                if cards[firstIndex].hasBeenSeen { score -= 1 }  // Checks if this card's been seen before.  If so, -1 points.
+                if cards[secondIndex].hasBeenSeen { score -= 1 }
                 // Mark both as seen
                 cards[firstIndex].hasBeenSeen = true  // both cards need to get marked as seen before
                 cards[secondIndex].hasBeenSeen = true
             }
         }
     }
-    
-    // Flips both UNMATCHEDe cards back down separately from everything else
+
+    // Flips both UNMATCHED cards back down separately from everything else.  The whole point here is to isolate both cards to be flipped down so that we can apply a slight delay and actually get to see the second card.
     mutating func flipBackUnmatchedCards() {
         for idx in tappedCardIndices {
             if !cards[idx].isMatched {
@@ -76,7 +76,7 @@ struct RulebookModel {
         }
         reset()
     }
-    
+
     mutating func reset() {
         tappedCardIndices = []
         tapCount = 0
