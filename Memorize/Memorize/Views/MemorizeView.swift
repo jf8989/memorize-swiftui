@@ -5,7 +5,7 @@ import SwiftUI
 struct MemorizeView: View {
     @Environment(\.colorScheme) var colorScheme  // This allows me to decide what happens when the Color Scheme is "dark", preventing color-masking.
 
-    @StateObject var viewModel = MemorizeViewModel()  // @ObservedObject means SwiftUI watches for changes and updates the View automatically.
+    @StateObject var viewModel = MemorizeViewModel()
 
     var body: some View {
         VStack {  // we're aligning all of our views vertically in order to organize the UI
