@@ -39,10 +39,14 @@ xcuserdata/
 *.xcscmblueprint
 *.xccheckout
 
-### Xcode Patch ###
-*.xcodeproj/*
+# Ignore all user-specific files inside Xcode projects
+*.xcuserstate
+*.xcuserdata/
+*.xcuserdatad/
+*.xcscmblueprint
+*.xccheckout
+
+# Allow shared configuration only
 !*.xcodeproj/project.pbxproj
 !*.xcodeproj/xcshareddata/
 !*.xcworkspace/contents.xcworkspacedata
-/*.gcno
-**/xcshareddata/WorkspaceSettings.xcsettings
