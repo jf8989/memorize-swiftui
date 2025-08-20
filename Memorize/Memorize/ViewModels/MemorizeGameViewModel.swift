@@ -7,13 +7,13 @@ import SwiftUI
 final class MemorizeGameViewModel: ObservableObject {
 
     // MARK: - Theme & Cards (UI-facing)
-    @Published private(set) var selectedTheme: EmojiThemeModel?
+    @Published private(set) var selectedTheme: Theme?
     @Published var cards: [Card] = []
     @Published var isTapEnabled: Bool = true
 
     // MARK: - Timer & Scoring
     @Published var timeRemaining: Int = 120
-    /// Published mirror of rules.score so the UI updates even if `cards` doesn’t change.
+    /// Published mirror of rules.score so the UI updates even if `cards` does not change.
     @Published private(set) var score: Int = 0
 
     // MARK: - Session State
@@ -24,31 +24,25 @@ final class MemorizeGameViewModel: ObservableObject {
     private var gameRules = GameRules(cards: [])
     private var timer: Timer?
     private var gameStartTime: Date?
+    private var gradientRGBAs: (RGBA, RGBA)?
+    /// UI-only: optional gradient for card backs
 
     deinit { timer?.invalidate() }
 
     // MARK: - Derived Theme UI
 
-    /// Whether the theme uses a gradient (two colors) for the card back.
-    var isGradient: Bool { selectedTheme?.colorG != nil }
+    var isGradient: Bool { gradientRGBAs != nil }
 
-    /// Primary theme color as `Color`.
+    /// Primary theme color.
     var themeColor: Color {
-        guard let colorName = selectedTheme?.color else { return .gray }
-        return colorFromString(colorName)
+        Color(rgba: selectedTheme?.rgba ?? .gray)
     }
 
     /// Optional theme gradient for the card back.
     var themeGradientColor: LinearGradient? {
-        guard
-            let color1Name = selectedTheme?.color,
-            let color2Name = selectedTheme?.colorG
-        else { return nil }
-
-        let color1 = colorFromString(color1Name)
-        let color2 = colorFromString(color2Name)
+        guard let pair = gradientRGBAs else { return nil }
         return LinearGradient(
-            colors: [color1, color2],
+            colors: [Color(rgba: pair.0), Color(rgba: pair.1)],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
@@ -58,18 +52,6 @@ final class MemorizeGameViewModel: ObservableObject {
     var themeName: String {
         selectedTheme?.name
             ?? "Welcome to the Memory Game!\n\nDo you have what it takes?\n\nThen let's play!"
-    }
-
-    /// Pairs to deal for the current theme, clamped to available emojis, with sensible defaults.
-    var safeNumberOfPairs: Int {
-        guard let theme = selectedTheme else { return 8 }
-        let emojiCount = theme.emojis.count
-
-        if let pairs = theme.numberOfPairs {
-            if emojiCount == 0 { return 2 }
-            return min(max(pairs, 8), emojiCount)
-        }
-        return max(min(emojiCount, 10), 8)
     }
 
     // MARK: - Intent
@@ -83,16 +65,20 @@ final class MemorizeGameViewModel: ObservableObject {
         isTapEnabled = true
         isGameStarted = true
 
-        // Pick a theme and build the deck via factory.
-        guard let theme = EmojiThemeModel.themes.randomElement() else { return }
-        selectedTheme = theme
+        // Pick a legacy theme and adapt to the new Theme model.
+        guard let legacy = EmojiThemeModel.themes.randomElement() else {
+            return
+        }
+        let adapted = ThemeAdapter.adapt(from: legacy)
+        selectedTheme = adapted.theme
+        gradientRGBAs = adapted.gradient
 
-        let chosenEmojis = Array(
-            theme.emojis.shuffled().prefix(safeNumberOfPairs)
-        )
-        let newCards = DeckFactory.makeDeck(from: chosenEmojis)
+        // Choose N emojis (N is already clamped in Theme).
+        guard let current = selectedTheme else { return }
+        let chosen = Array(current.emojis.shuffled().prefix(current.pairs))
+        let newCards = DeckFactory.makeDeck(from: chosen)
 
-        // Reset rules and publish synced state.
+        // Reset rules and publish state.
         gameRules = GameRules(cards: newCards)
         gameRules.score = 0
         syncFromRules()
@@ -107,19 +93,22 @@ final class MemorizeGameViewModel: ObservableObject {
 
         // If two unmatched cards are face up, briefly show them before flipping back down.
         if gameRules.indicesOfFaceUpUnmatchedCards != nil {
-            timeRemaining -= 5
+            timeRemaining = timeRemaining - 5
             isTapEnabled = false
+
             Task { @MainActor in
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
-                gameRules.flipBackUnmatchedCards()
-                syncFromRules()
-                if timeRemaining > 0 && !isGameOver { isTapEnabled = true }
+                self.gameRules.flipBackUnmatchedCards()
+                self.syncFromRules()
+                if self.timeRemaining > 0 && !self.isGameOver {
+                    self.isTapEnabled = true
+                }
             }
         } else if gameRules.isThisAmatch {
             // Match: award points based on elapsed time.
             let elapsed = elapsedTimeSinceStart()
             let points = pointsForElapsedTime(elapsed)
-            gameRules.score += points
+            gameRules.score = gameRules.score + points
             gameRules.reset()
             syncFromRules()
 
@@ -139,7 +128,7 @@ final class MemorizeGameViewModel: ObservableObject {
                     self.endGame()
                     return
                 }
-                self.timeRemaining -= 1
+                self.timeRemaining = self.timeRemaining - 1
             }
         }
         timer?.tolerance = 0.1
@@ -165,27 +154,6 @@ final class MemorizeGameViewModel: ObservableObject {
         case 0..<20: return 4
         case 20..<40: return 3
         default: return 2
-        }
-    }
-
-    // MARK: - Utilities
-
-    /// Maps a stored color name to `Color`. Fallback is `.gray`.
-    private func colorFromString(_ name: String) -> Color {
-        switch name {
-        case "orange": return .orange
-        case "yellow": return .yellow
-        case "green": return .green
-        case "black": return .black
-        case "red": return .red
-        case "purple": return .purple
-        case "gray": return .gray
-        case "pink": return .pink
-        case "brown": return .brown
-        case "teal": return .teal
-        case "blue": return .blue
-        case "cyan": return .cyan
-        default: return .gray
         }
     }
 
