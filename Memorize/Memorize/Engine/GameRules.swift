@@ -1,4 +1,4 @@
-//  Model/GameRules.swift
+//  Engine/GameRules.swift
 
 import Foundation
 

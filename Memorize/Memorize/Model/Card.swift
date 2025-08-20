@@ -3,7 +3,7 @@
 import Foundation
 
 /// Identifiable card model used by the game.
-struct Card: Identifiable {
+struct Card: Identifiable, Hashable {
     let id = UUID()
     let content: String
     var isFaceUp: Bool = false

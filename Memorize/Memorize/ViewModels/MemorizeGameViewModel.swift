@@ -35,7 +35,7 @@ final class MemorizeGameViewModel: ObservableObject {
     /// Primary theme color as `Color`.
     var themeColor: Color {
         guard let colorName = selectedTheme?.color else { return .gray }
-        return colorFromString(colorName)  // was: Color.appColor(named: colorName)
+        return colorFromString(colorName)
     }
 
     /// Optional theme gradient for the card back.
@@ -45,8 +45,8 @@ final class MemorizeGameViewModel: ObservableObject {
             let color2Name = selectedTheme?.colorG
         else { return nil }
 
-        let color1 = colorFromString(color1Name)  // was: Color.appColor(named: color1Name)
-        let color2 = colorFromString(color2Name)  // was: Color.appColor(named: color2Name)
+        let color1 = colorFromString(color1Name)
+        let color2 = colorFromString(color2Name)
         return LinearGradient(
             colors: [color1, color2],
             startPoint: .topLeading,
@@ -89,31 +89,11 @@ final class MemorizeGameViewModel: ObservableObject {
         guard let theme = EmojiThemeModel.themes.randomElement() else { return }
         selectedTheme = theme
 
-        // Choose N emojis and duplicate each exactly once.
+        // Choose N emojis and build the deck via factory.
         let chosenEmojis = Array(
             theme.emojis.shuffled().prefix(safeNumberOfPairs)
         )
-        var newCards = chosenEmojis.flatMap {
-            [Card(content: $0), Card(content: $0)]
-        }
-        newCards.shuffle()
-
-        // Defensive invariant (debug): every emoji must appear exactly twice.
-        #if DEBUG
-            var grouped = Dictionary(grouping: newCards, by: { $0.content })
-                .mapValues { $0.count }
-            if grouped.values.contains(where: { $0 != 2 }) {
-                newCards = chosenEmojis.flatMap {
-                    [Card(content: $0), Card(content: $0)]
-                }.shuffled()
-                grouped = Dictionary(grouping: newCards, by: { $0.content })
-                    .mapValues { $0.count }
-                assert(
-                    !grouped.values.contains { $0 != 2 },
-                    "Pair generation invariant failed: \(grouped)"
-                )
-            }
-        #endif
+        let newCards = DeckFactory.makeDeck(from: chosenEmojis)
 
         cards = newCards
         gameRules = GameRules(cards: cards)
@@ -172,8 +152,7 @@ final class MemorizeGameViewModel: ObservableObject {
     // MARK: - Scoring Helpers
 
     private func elapsedTimeSinceStart() -> Int {
-        let now = Date()
-        return Int(now.timeIntervalSince(gameStartTime ?? now))
+        Date().seconds(since: gameStartTime)
     }
 
     private func pointsForElapsedTime(_ elapsed: Int) -> Int {
@@ -184,8 +163,9 @@ final class MemorizeGameViewModel: ObservableObject {
         }
     }
 
-    // add at the bottom of the file (or near Utilities):
-    // MARK: - App Color Mapping (Local)
+    // MARK: - Utilities
+
+    /// Maps a stored color name to `Color`. Fallback is `.gray`.
     private func colorFromString(_ name: String) -> Color {
         switch name {
         case "orange": return .orange
