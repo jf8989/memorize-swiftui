@@ -13,6 +13,7 @@ struct EmojiThemeModel: Identifiable {
 
     /// Built-in themes used by the current implementation.
     static let themes: [EmojiThemeModel] = [
+        // Existing
         EmojiThemeModel(
             name: "Halloween",
             emojis: halloweenEmojis,
@@ -97,36 +98,105 @@ struct EmojiThemeModel: Identifiable {
             color: "cyan",
             colorG: "green"
         ),
+
+        // New (at least 10 more)
+        EmojiThemeModel(
+            name: "Sea Life",
+            emojis: seaEmojis,
+            numberOfPairs: nil,
+            color: "teal",
+            colorG: "blue"
+        ),
+        EmojiThemeModel(
+            name: "Birds",
+            emojis: birdEmojis,
+            numberOfPairs: nil,
+            color: "cyan",
+            colorG: "pink"
+        ),
+        EmojiThemeModel(
+            name: "Reptiles",
+            emojis: reptileEmojis,
+            numberOfPairs: nil,
+            color: "green",
+            colorG: "gray"
+        ),
+        EmojiThemeModel(
+            name: "Fruits",
+            emojis: fruitEmojis,
+            numberOfPairs: 12,
+            color: "pink",
+            colorG: "red"
+        ),
+        EmojiThemeModel(
+            name: "Vegetables",
+            emojis: vegetableEmojis,
+            numberOfPairs: 10,
+            color: "green",
+            colorG: "yellow"
+        ),
+        EmojiThemeModel(
+            name: "Beverages",
+            emojis: beverageEmojis,
+            numberOfPairs: nil,
+            color: "brown",
+            colorG: "cyan"
+        ),
+        EmojiThemeModel(
+            name: "Tools",
+            emojis: toolEmojis,
+            numberOfPairs: nil,
+            color: "gray",
+            colorG: "orange"
+        ),
+        EmojiThemeModel(
+            name: "Household",
+            emojis: householdEmojis,
+            numberOfPairs: nil,
+            color: "purple",
+            colorG: "teal"
+        ),
+        EmojiThemeModel(
+            name: "Office",
+            emojis: officeEmojis,
+            numberOfPairs: nil,
+            color: "blue",
+            colorG: "yellow"
+        ),
+        EmojiThemeModel(
+            name: "Clothing",
+            emojis: clothingEmojis,
+            numberOfPairs: nil,
+            color: "pink",
+            colorG: "purple"
+        ),
+        EmojiThemeModel(
+            name: "Desserts",
+            emojis: dessertEmojis,
+            numberOfPairs: 9,
+            color: "orange",
+            colorG: "yellow"
+        ),
+        EmojiThemeModel(
+            name: "Travel",
+            emojis: travelEmojis,
+            numberOfPairs: nil,
+            color: "cyan",
+            colorG: "blue"
+        ),
+        EmojiThemeModel(
+            name: "Plants",
+            emojis: plantEmojis,
+            numberOfPairs: nil,
+            color: "green",
+            colorG: "teal"
+        ),
+        EmojiThemeModel(
+            name: "Science",
+            emojis: scienceEmojis,
+            numberOfPairs: nil,
+            color: "purple",
+            colorG: "blue"
+        ),
     ]
 }
-
-// MARK: - Emoji Sources
-
-let halloweenEmojis = [
-    "👻", "🎃", "🕷️", "💀", "🧟‍♂️", "🦇", "🧙‍♀️", "🍬", "🍭", "🪦", "🧛‍♂️", "🧞‍♂️", "☠️", "🧹", "🕸️",
-]
-let animalEmojis = [
-    "🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🦁", "🐸", "🐵", "🦄", "🦉",
-]
-let vehicleEmojis = [
-    "🚗", "🚕", "🚙", "🚌", "🚎", "🏎️", "🚓", "🚑", "🚒", "🚚", "🚜", "🛻", "🚲",
-]
-let spaceEmojis = ["🚀", "🪐", "🌑", "🛸", "👽", "🌟", "☄️", "🛰️", "🌌", "🔭", "🌠", "🛕"]
-let christmasEmojis = ["🎄", "🎅", "🤶", "🦌", "⛄", "❄️", "🛷", "🎁", "🕯️", "🔔", "🌟"]
-let techEmojis = ["💻", "🖥️", "🖨️", "🕹️", "🧑‍💻", "📱", "📡", "🛰️", "⌨️", "💾"]
-let musicEmojis = ["🎵", "🎶", "🎸", "🥁", "🎷", "🎺", "🎹", "🎧", "🎤", "📻", "🪕", "🪘"]
-let emotionEmojis = [
-    "😀", "😂", "😅", "😍", "😭", "😡", "😱", "🥰", "🤔", "😴", "🥺", "🤯", "😎",
-]
-let foodEmojis = [
-    "🍕", "🍔", "🍟", "🌭", "🍿", "🥓", "🥞", "🍣", "🍩", "🍪", "🍉", "🍇", "🍓", "🍜",
-]
-let fantasyEmojis = [
-    "🧙‍♂️", "🧝‍♀️", "🧚‍♂️", "🧛‍♀️", "🐉", "🦄", "🗡️", "⚔️", "🛡️", "📜", "🔮", "🏰", "🪄",
-]
-let sportsEmojis = [
-    "⚽", "🏀", "🏈", "⚾", "🎾", "🏐", "🏉", "🥏", "🥊", "🥋", "⛳", "🏓", "🏸",
-]
-let natureEmojis = [
-    "☀️", "🌤️", "🌧️", "⛈️", "🌩️", "🌪️", "🌈", "❄️", "🌊", "🍃", "🌸", "🌻", "🌳",
-]
