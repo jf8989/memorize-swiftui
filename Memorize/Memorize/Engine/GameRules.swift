@@ -37,7 +37,7 @@ struct GameRules {
     /// Main game logic for choosing a card.
     mutating func choose(card: Card) {
         guard
-            let chosenIndex = cards.firstIndex(where: { $0.id == card.id }),
+            let chosenIndex = cards.firstIndex(ofID: card.id),
             !cards[chosenIndex].isFaceUp,
             !cards[chosenIndex].isMatched
         else { return }
