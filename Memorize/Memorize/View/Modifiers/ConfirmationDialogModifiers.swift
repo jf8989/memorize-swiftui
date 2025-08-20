@@ -2,12 +2,7 @@
 
 import SwiftUI
 
-/// Reusable confirmation dialog that works with any presented item.
-/// Usage:
-/// `.confirmDialog(title: "Delete?", isPresented: $show, presenting: item,
-///                 message: "This cannot be undone.",
-///                 confirmTitle: { "Delete “\($0.name)”" },
-///                 confirmRole: .destructive) { item in /* handle */ }`
+/// Reusable confirmation dialog that binds to an optional presented item.
 struct ConfirmDialogModifier<Item>: ViewModifier {
     // MARK: - Inputs
     let title: String
@@ -33,16 +28,15 @@ struct ConfirmDialogModifier<Item>: ViewModifier {
                 Button(cancelTitle, role: .cancel) {}
             },
             message: { _ in
-                if let message {
-                    Text(message)
-                }
+                if let message { Text(message) }
             }
         )
     }
 }
 
 extension View {
-    /// Attach a reusable confirmation dialog to any view.
+    /// Confirm dialog tied to an optional item.
+    /// - Parameters match SwiftUI's `confirmationDialog` plus a typed confirm.
     func confirmDialog<Item>(
         title: String,
         isPresented: Binding<Bool>,
@@ -56,8 +50,60 @@ extension View {
         modifier(
             ConfirmDialogModifier(
                 title: title,
-                isPresented: isPresented,
+                isPresented: isPresented.wrappedValue == true
+                    ? isPresented : isPresented,  // keeps binding as-is
                 presenting: presenting,
+                message: message,
+                confirmTitle: confirmTitle,
+                confirmRole: confirmRole,
+                cancelTitle: cancelTitle,
+                onConfirm: onConfirm
+            )
+        )
+    }
+}
+
+// MARK: - Simple (no-item) variant
+
+/// Confirmation dialog without a presented item.
+private struct SimpleConfirmDialogModifier: ViewModifier {
+    let title: String
+    @Binding var isPresented: Bool
+    let message: String?
+    let confirmTitle: String
+    let confirmRole: ButtonRole
+    let cancelTitle: String
+    let onConfirm: () -> Void
+
+    func body(content: Content) -> some View {
+        content.confirmationDialog(
+            title,
+            isPresented: $isPresented,
+            titleVisibility: .automatic,
+            actions: {
+                Button(confirmTitle, role: confirmRole) { onConfirm() }
+                Button(cancelTitle, role: .cancel) {}
+            },
+            message: { if let message { Text(message) } }
+        )
+    }
+}
+
+extension View {
+    /// Simple confirm dialog without an item (e.g., "Sign out?").
+    func confirmDialog(
+        title: String,
+        isPresented: Binding<Bool>,
+        message: String? = nil,
+        confirmTitle: String = "Confirm",
+        confirmRole: ButtonRole = .destructive,
+        cancelTitle: String = "Cancel",
+        onConfirm: @escaping () -> Void
+    ) -> some View {
+        modifier(
+            SimpleConfirmDialogModifier(
+                title: title,
+                isPresented: isPresented,
                 message: message,
                 confirmTitle: confirmTitle,
                 confirmRole: confirmRole,
