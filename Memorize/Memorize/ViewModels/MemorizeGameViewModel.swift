@@ -6,14 +6,15 @@ import SwiftUI
 @MainActor
 final class MemorizeGameViewModel: ObservableObject {
 
-    // MARK: - Theme & Cards (UI-facing)
-    @Published private(set) var selectedTheme: Theme?
+    // MARK: - Theme (fixed for session)
+    let theme: Theme
+
+    // MARK: - Cards & UI State
     @Published var cards: [Card] = []
     @Published var isTapEnabled: Bool = true
 
     // MARK: - Timer & Scoring
     @Published var timeRemaining: Int = 120
-    /// Published mirror of rules.score so the UI updates even if `cards` does not change.
     @Published private(set) var score: Int = 0
 
     // MARK: - Session State
@@ -24,67 +25,36 @@ final class MemorizeGameViewModel: ObservableObject {
     private var gameRules = GameRules(cards: [])
     private var timer: Timer?
     private var gameStartTime: Date?
-    private var gradientRGBAs: (RGBA, RGBA)?
-    /// UI-only: optional gradient for card backs
-    private let themeStore: ThemeStoreProtocol
 
     // MARK: - Init
-    init(store: ThemeStoreProtocol? = nil) {
-        self.themeStore = store ?? ThemeStore.shared  // main-actor safe here
-        self.themeStore.seedIfEmpty(from: EmojiThemeModel.themes)
+    init(theme: Theme) {
+        self.theme = theme
+        newGame()  // start immediately with provided theme
     }
 
     deinit { timer?.invalidate() }
 
     // MARK: - Derived Theme UI
 
-    var isGradient: Bool { gradientRGBAs != nil }
-
-    /// Primary theme color.
-    var themeColor: Color {
-        Color(rgba: selectedTheme?.rgba ?? .gray)
-    }
-
-    /// Optional theme gradient for the card back (nil after seed; gradients were legacy-only).
-    var themeGradientColor: LinearGradient? {
-        guard let pair = gradientRGBAs else { return nil }
-        return LinearGradient(
-            colors: [Color(rgba: pair.0), Color(rgba: pair.1)],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-    }
-
-    /// Display name for the current theme or a welcome message if no theme is selected.
-    var themeName: String {
-        selectedTheme?.name
-            ?? "Welcome to the Memory Game!\n\nDo you have what it takes?\n\nThen let's play!"
-    }
+    var themeName: String { theme.name }
+    var themeColor: Color { Color(rgba: theme.rgba) }
+    var themeGradientColor: LinearGradient? { nil }  // gradients not in persisted model
 
     // MARK: - Intent
 
-    /// Starts a new game session with a persisted theme and a valid deck (each emoji appears exactly twice).
+    /// Starts/restarts a game using this instance's theme (no random selection).
     func newGame() {
-        // Reset session state.
         timer?.invalidate()
         gameStartTime = Date()
         timeRemaining = 120
         isTapEnabled = true
         isGameStarted = true
 
-        // Pick a stored theme (themes are persisted and seeded if needed).
-        let themes = themeStore.refresh()
-        guard let picked = themes.randomElement() else { return }
-        selectedTheme = picked
-
-        // Gradients are not persisted; default to solid color for persisted themes.
-        gradientRGBAs = nil
-
-        // Choose N emojis based on clamped pairs in Theme.
-        let chosen = Array(picked.emojis.shuffled().prefix(picked.pairs))
+        // Build deck from theme (pairs clamped by editor; still guard for safety).
+        let pairs = max(2, min(theme.pairs, theme.emojis.count))
+        let chosen = Array(theme.emojis.shuffled().prefix(pairs))
         let newCards = DeckFactory.makeDeck(from: chosen)
 
-        // Reset rules and publish state.
         gameRules = GameRules(cards: newCards)
         gameRules.score = 0
         syncFromRules()
@@ -97,11 +67,9 @@ final class MemorizeGameViewModel: ObservableObject {
         gameRules.choose(card: card)
         syncFromRules()
 
-        // If two unmatched cards are face up, briefly show them before flipping back down.
         if gameRules.indicesOfFaceUpUnmatchedCards != nil {
             timeRemaining = timeRemaining - 5
             isTapEnabled = false
-
             Task { @MainActor in
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
                 self.gameRules.flipBackUnmatchedCards()
@@ -111,7 +79,6 @@ final class MemorizeGameViewModel: ObservableObject {
                 }
             }
         } else if gameRules.isThisAmatch {
-            // Match: award points based on elapsed time.
             let elapsed = elapsedTimeSinceStart()
             let points = pointsForElapsedTime(elapsed)
             gameRules.score = gameRules.score + points
@@ -165,7 +132,6 @@ final class MemorizeGameViewModel: ObservableObject {
 
     // MARK: - Sync
 
-    /// Keeps `@Published` view state (`cards`, `score`) in sync with the engine (`gameRules`).
     private func syncFromRules() {
         cards = gameRules.cards
         score = gameRules.score

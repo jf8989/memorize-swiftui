@@ -1,13 +1,15 @@
-//  View/MemorizeMainView.swift
+//  View/MemorizeGameView.swift
 
 import SwiftUI
 
-/// Root view for the Memorize game.
-struct MemorizeMainView: View {
-    // MARK: - State
-    @StateObject private var viewModel = MemorizeGameViewModel()
+/// Game screen for a single Theme. Owns its VM via StateObject.
+struct MemorizeGameView: View {
+    @StateObject private var viewModel: MemorizeGameViewModel
 
-    // MARK: - Body
+    init(viewModel: MemorizeGameViewModel) {
+        _viewModel = StateObject(wrappedValue: viewModel)
+    }
+
     var body: some View {
         VStack {
             HeaderView(
@@ -30,9 +32,17 @@ struct MemorizeMainView: View {
                 .padding(.bottom)
         }
         .padding()
+        .navigationTitle(viewModel.themeName)
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
 #Preview {
-    MemorizeMainView()
+    let demo = Theme(
+        name: "Demo",
+        emojis: ["😀", "🐶", "🍕", "⚽"],
+        pairs: 4,
+        rgba: .gray
+    )
+    return MemorizeGameView(viewModel: MemorizeGameViewModel(theme: demo))
 }

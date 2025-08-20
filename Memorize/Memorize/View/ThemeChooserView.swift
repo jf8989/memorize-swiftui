@@ -19,11 +19,9 @@ struct ThemeChooserView: View {
                 NavigationLink(value: theme.id) {
                     ThemeRowView(theme: theme)
                 }
-                // Leading swipe: Edit (keeps tap for navigate)
                 .swipeActions(edge: .leading) {
                     Button("Edit") { editingTheme = theme }
                 }
-                // Trailing swipe: stage Delete (confirmed via dialog)
                 .swipeActions(edge: .trailing) {
                     Button(role: .destructive) {
                         pendingDelete = theme
@@ -33,7 +31,6 @@ struct ThemeChooserView: View {
                     }
                 }
             }
-            // Edit-mode multi-delete (minus controls)
             .onDelete(perform: delete)
         }
         .navigationTitle("Themes")
@@ -48,15 +45,17 @@ struct ThemeChooserView: View {
                 .accessibilityLabel("Add Theme")
             }
         }
-        // Edit sheet (modal)
         .sheet(item: $editingTheme) { theme in
             ThemeEditorView(theme: theme)
         }
-        // Destination by stable ID (placeholder for Phase 7 -> game)
+        // Destination: resolve by ID → instantiate VM(theme:) → push game view.
         .navigationDestination(for: UUID.self) { themeID in
-            ThemeDetailPlaceholderView(themeID: themeID)
+            if let theme = store.themes.first(where: { $0.id == themeID }) {
+                MemorizeGameView(viewModel: MemorizeGameViewModel(theme: theme))
+            } else {
+                ThemeDetailPlaceholderView(themeID: themeID)
+            }
         }
-        // Reusable confirmation dialog
         .confirmDialog(
             title: "Delete Theme?",
             isPresented: $showDeleteConfirm,
@@ -84,7 +83,7 @@ struct ThemeChooserView: View {
         )
         let newTheme = Theme(name: name, emojis: [], pairs: 2, rgba: .gray)
         store.upsert(newTheme)
-        editingTheme = newTheme/// Auto-open editor
+        editingTheme = newTheme
     }
 
     private func delete(theme: Theme) {
