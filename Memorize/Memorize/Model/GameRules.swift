@@ -1,9 +1,9 @@
-//  Model/RulebookModel.swift
+//  Model/GameRules.swift
 
 import Foundation
 
 /// Core game rules for Memorize. Pure value type; owns the authoritative card array and score.
-struct RulebookModel {
+struct GameRules {
     // MARK: - State
     private(set) var cards: [Card]
     var score: Int = 0
@@ -18,6 +18,7 @@ struct RulebookModel {
     }
 
     // MARK: - Derived
+
     /// If two cards are face up and not matched, returns their indices (used to time a flip-back).
     var indicesOfFaceUpUnmatchedCards: [Int]? {
         if tappedCardIndices.count == 2
@@ -32,6 +33,7 @@ struct RulebookModel {
     var isThisAmatch: Bool = false
 
     // MARK: - Intent
+
     /// Main game logic for choosing a card.
     mutating func choose(card: Card) {
         guard

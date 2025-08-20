@@ -1,9 +1,9 @@
-//  ViewModels/MemorizeViewModel.swift
+//  ViewModel/MemorizeGameViewModel.swift
 
 import SwiftUI
 
-/// ViewModel for the Memorize game. Owns UI-facing state and orchestrates moves via `RulebookModel`.
-final class MemorizeViewModel: ObservableObject {
+/// ViewModel for the Memorize game. Owns UI-facing state and orchestrates moves via `GameRules`.
+final class MemorizeGameViewModel: ObservableObject {
     // MARK: - Theme & Cards (UI-facing)
     @Published private(set) var selectedTheme: EmojiThemeModel?
     @Published var cards: [Card] = []
@@ -11,7 +11,7 @@ final class MemorizeViewModel: ObservableObject {
 
     // MARK: - Timer & Scoring
     @Published var timeRemaining: Int = 120
-    var score: Int { rulebook.score }
+    var score: Int { gameRules.score }
 
     // MARK: - Session State
     var gameStartTime: Date?
@@ -20,7 +20,7 @@ final class MemorizeViewModel: ObservableObject {
     var showScore: Bool = false
 
     // MARK: - Private
-    private var rulebook = RulebookModel(cards: [])
+    private var gameRules = GameRules(cards: [])
     private var timer: Timer?
 
     deinit { timer?.invalidate() }
@@ -35,7 +35,7 @@ final class MemorizeViewModel: ObservableObject {
     /// Primary theme color as `Color`.
     var themeColor: Color {
         guard let colorName = selectedTheme?.color else { return .gray }
-        return colorFromString(colorName)
+        return colorFromString(colorName)  // was: Color.appColor(named: colorName)
     }
 
     /// Optional theme gradient for the card back.
@@ -45,8 +45,8 @@ final class MemorizeViewModel: ObservableObject {
             let color2Name = selectedTheme?.colorG
         else { return nil }
 
-        let color1 = colorFromString(color1Name)
-        let color2 = colorFromString(color2Name)
+        let color1 = colorFromString(color1Name)  // was: Color.appColor(named: color1Name)
+        let color2 = colorFromString(color2Name)  // was: Color.appColor(named: color2Name)
         return LinearGradient(
             colors: [color1, color2],
             startPoint: .topLeading,
@@ -80,7 +80,7 @@ final class MemorizeViewModel: ObservableObject {
         timer?.invalidate()
         gameStartTime = Date()
         timeRemaining = 120
-        rulebook.score = 0
+        gameRules.score = 0
         isTapEnabled = true
         isGameStarted = true
         startTimer()
@@ -103,7 +103,6 @@ final class MemorizeViewModel: ObservableObject {
             var grouped = Dictionary(grouping: newCards, by: { $0.content })
                 .mapValues { $0.count }
             if grouped.values.contains(where: { $0 != 2 }) {
-                // Rebuild deterministically and re-check once.
                 newCards = chosenEmojis.flatMap {
                     [Card(content: $0), Card(content: $0)]
                 }.shuffled()
@@ -117,32 +116,32 @@ final class MemorizeViewModel: ObservableObject {
         #endif
 
         cards = newCards
-        rulebook = RulebookModel(cards: cards)
+        gameRules = GameRules(cards: cards)
     }
 
     /// Handles a user tapping a card.
     func choose(_ card: Card) {
-        rulebook.choose(card: card)
-        cards = rulebook.cards
+        gameRules.choose(card: card)
+        cards = gameRules.cards
 
         // If two unmatched cards are face up, briefly show them before flipping back down.
-        if rulebook.indicesOfFaceUpUnmatchedCards != nil {
+        if gameRules.indicesOfFaceUpUnmatchedCards != nil {
             timeRemaining -= 5
             isTapEnabled = false
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                self.rulebook.flipBackUnmatchedCards()
-                self.cards = self.rulebook.cards
+                self.gameRules.flipBackUnmatchedCards()
+                self.cards = self.gameRules.cards
                 if self.timeRemaining > 0 && !self.isGameOver {
                     self.isTapEnabled = true
                 }
             }
-        } else if rulebook.isThisAmatch {
+        } else if gameRules.isThisAmatch {
             // Match: award points based on elapsed time.
             let elapsed = elapsedTimeSinceStart()
             let points = pointsForElapsedTime(elapsed)
-            rulebook.score += points
-            rulebook.reset()
+            gameRules.score += points
+            gameRules.reset()
 
             if isGameOver { endGame() }
         }
@@ -153,12 +152,12 @@ final class MemorizeViewModel: ObservableObject {
     private func startTimer() {
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) {
             [weak self] _ in
-            guard let self = self else { return }
-            if self.timeRemaining > 0 {
-                self.timeRemaining -= 1
+            guard let self else { return }
+            if timeRemaining > 0 {
+                timeRemaining -= 1
             }
-            if self.timeRemaining <= 0 {
-                self.endGame()
+            if timeRemaining <= 0 {
+                endGame()
             }
         }
     }
@@ -185,10 +184,9 @@ final class MemorizeViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Utilities
-
-    /// Maps a stored color name to `Color`. Fallback is `.gray`.
-    func colorFromString(_ name: String) -> Color {
+    // add at the bottom of the file (or near Utilities):
+    // MARK: - App Color Mapping (Local)
+    private func colorFromString(_ name: String) -> Color {
         switch name {
         case "orange": return .orange
         case "yellow": return .yellow

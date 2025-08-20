@@ -1,15 +1,6 @@
-//  Model/ThemeModel.swift
+//  Model/EmojiThemeModel.swift
 
 import SwiftUI
-
-/// Identifiable card model used by the game.
-struct Card: Identifiable {
-    let id = UUID()
-    let content: String
-    var isFaceUp: Bool = false
-    var isMatched: Bool = false
-    var hasBeenSeen: Bool = false
-}
 
 /// A theme definition for the pre-A6 version of the app (static built-ins).
 struct EmojiThemeModel: Identifiable {

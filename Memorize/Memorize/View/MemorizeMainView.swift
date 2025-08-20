@@ -1,14 +1,14 @@
-//  Views/MemorizeView.swift
+//  View/MemorizeMainView.swift
 
 import SwiftUI
 
 /// Root view for the Memorize game.
-struct MemorizeView: View {
+struct MemorizeMainView: View {
     // MARK: - Environment
     @Environment(\.colorScheme) private var colorScheme
 
     // MARK: - State
-    @StateObject private var viewModel = MemorizeViewModel()
+    @StateObject private var viewModel = MemorizeGameViewModel()
 
     // MARK: - Body
     var body: some View {
@@ -35,7 +35,8 @@ struct MemorizeView: View {
         // Ensure readable title in dark mode when theme color is black.
         let displayColor =
             (viewModel.themeColor == .black && colorScheme == .dark)
-            ? Color.white : viewModel.themeColor
+            ? Color.white
+            : viewModel.themeColor
 
         return Text(viewModel.themeName)
             .font(.system(size: 36, weight: .bold, design: .rounded))
@@ -116,61 +117,6 @@ struct MemorizeView: View {
     }
 }
 
-/// A single card view.
-struct CardView: View {
-    let card: Card
-    let themeColor: Color
-    let themeGradient: LinearGradient?
-
-    private var rotation: Double { card.isFaceUp ? 0 : 180 }
-
-    var body: some View {
-        ZStack {
-            if card.isMatched {
-                EmptyView()
-            } else {
-                // Front
-                Group {
-                    RoundedRectangle(cornerRadius: 12).fill(Color.white).shadow(
-                        radius: 2.5
-                    )
-                    RoundedRectangle(cornerRadius: 12).strokeBorder(
-                        lineWidth: 2
-                    ).foregroundColor(.orange)
-                    Text(card.content).font(.largeTitle)
-                }
-                .opacity(card.isFaceUp ? 1.0 : 0.0)
-
-                // Back
-                Group {
-                    if let gradient = themeGradient {
-                        RoundedRectangle(cornerRadius: 12).fill(gradient)
-                            .shadow(radius: 2.5)
-                    } else {
-                        RoundedRectangle(cornerRadius: 12).fill(themeColor)
-                            .shadow(radius: 2.5)
-                    }
-                    Text("?")
-                        .bold()
-                        .font(.largeTitle)
-                        .fontDesign(.serif)
-                        .rotation3DEffect(
-                            .degrees(180),
-                            axis: (x: 0, y: 1, z: 0)
-                        )  // correct mirroring
-                }
-                .opacity(card.isFaceUp ? 0.0 : 1.0)
-            }
-        }
-        .aspectRatio(2 / 3, contentMode: .fit)
-        .opacity(card.isMatched ? 0 : 1)
-        .allowsHitTesting(!card.isMatched)
-        .scaleEffect(card.isFaceUp ? 1.08 : 1.0)
-        .rotation3DEffect(.degrees(rotation), axis: (x: 0, y: 1, z: 0))
-        .animation(.easeInOut(duration: 0.35), value: card.isFaceUp)
-    }
-}
-
 #Preview {
-    MemorizeView()
+    MemorizeMainView()
 }
