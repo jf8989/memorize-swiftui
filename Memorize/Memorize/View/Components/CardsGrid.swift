@@ -1,4 +1,4 @@
-//  View/Components/CardsGrid.swift
+// View/Components/CardsGrid.swift
 
 import SwiftUI
 
@@ -11,25 +11,27 @@ struct CardsGrid: View {
     let onTap: (Card) -> Void
 
     var body: some View {
-        ScrollView {
-            AspectVGrid(
-                items: cards,
-                aspectRatio: 2.0 / 3.0,
-                minimumCellWidth: 70/// stop shrinking below 70pt; allow vertical scroll instead
-            ) { card in
-                CardView(
-                    card: card,
-                    themeColor: themeColor,
-                    themeGradient: themeGradient
-                )
-                .onTapGesture { onTap(card) }
-                .allowsHitTesting(isTapEnabled)
-                .padding(6)
+        GeometryReader { proxy in
+            ScrollView {
+                AspectVGrid(
+                    items: cards,
+                    aspectRatio: 2.0 / 3.0,
+                    minimumCellWidth: 90,  // tweak to taste (80–110 usually feels right on iPad)
+                    availableHeight: proxy.size.height  // KEY: use the actual available height
+                ) { card in
+                    CardView(
+                        card: card,
+                        themeColor: themeColor,
+                        themeGradient: themeGradient
+                    )
+                    .onTapGesture { onTap(card) }
+                    .allowsHitTesting(isTapEnabled)
+                    .padding(8)
+                }
+                .padding(.horizontal, 12)
             }
-            .padding(.horizontal, 8)
+            .contentMargins(.top, 12)  // if you need iOS 15, use .padding(.top, 12)
+            .scrollIndicators(.automatic)
         }
-        .contentMargins(.top, 12)
-        /// space under header (iOS 16+). If supporting iOS 15, use `.padding(.top, 12)` instead.
-        .scrollIndicators(.automatic)
     }
 }

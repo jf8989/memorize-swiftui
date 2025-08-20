@@ -1,14 +1,15 @@
-//  View/Components/AspectVGrid.swift
+// View/Components/AspectVGrid.swift
 
 import SwiftUI
 
 /// A vertical grid that lays out items with a fixed aspect ratio.
-/// Now supports an optional `minimumCellWidth` to avoid over-shrinking; will scroll if needed.
+/// Supports `minimumCellWidth` and an optional `availableHeight` override (useful inside ScrollView).
 struct AspectVGrid<Item, ItemView>: View
 where ItemView: View, Item: Identifiable {
     let items: [Item]
     let aspectRatio: CGFloat
     let minimumCellWidth: CGFloat?
+    let availableHeight: CGFloat?  // NEW
     let content: (Item) -> ItemView
 
     // MARK: - Initialization
@@ -16,23 +17,25 @@ where ItemView: View, Item: Identifiable {
         items: [Item],
         aspectRatio: CGFloat,
         minimumCellWidth: CGFloat? = nil,
+        availableHeight: CGFloat? = nil,  // NEW
         @ViewBuilder content: @escaping (Item) -> ItemView
     ) {
         self.items = items
         self.aspectRatio = aspectRatio
         self.minimumCellWidth = minimumCellWidth
+        self.availableHeight = availableHeight
         self.content = content
     }
 
     // MARK: - Body
     var body: some View {
         GeometryReader { geometry in
+            let height = availableHeight ?? geometry.size.height  // NEW: prefer explicit height
             let fittedWidth = widthThatFits(
                 itemCount: items.count,
-                in: geometry.size,
+                in: CGSize(width: geometry.size.width, height: height),
                 itemAspectRatio: aspectRatio
             )
-            // Enforce a floor so we stop shrinking and allow scrolling instead.
             let cellWidth = max(fittedWidth, minimumCellWidth ?? 0)
 
             LazyVGrid(columns: [adaptiveGridItem(width: cellWidth)], spacing: 0)
@@ -52,7 +55,6 @@ where ItemView: View, Item: Identifiable {
         return gridItem
     }
 
-    /// Original “fit without scrolling” width finder (kept), but we clamp with `minimumCellWidth` above.
     private func widthThatFits(
         itemCount: Int,
         in size: CGSize,
@@ -61,7 +63,6 @@ where ItemView: View, Item: Identifiable {
         var columnCount = 1
         var rowCount = itemCount
         if itemCount == 0 { return size.width }
-
         repeat {
             let itemWidth = size.width / CGFloat(columnCount)
             let itemHeight = itemWidth / itemAspectRatio
@@ -71,7 +72,6 @@ where ItemView: View, Item: Identifiable {
             columnCount = columnCount + 1
             rowCount = (itemCount + columnCount - 1) / columnCount
         } while columnCount < itemCount
-
         return size.width / CGFloat(columnCount)
     }
 }
