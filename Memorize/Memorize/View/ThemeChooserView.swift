@@ -53,7 +53,8 @@ struct ThemeChooserView: View {
             if let theme = store.themes.first(where: { $0.id == themeID }) {
                 MemorizeGameView(viewModel: MemorizeGameViewModel(theme: theme))
             } else {
-                ThemeDetailPlaceholderView(themeID: themeID)
+                // Fallback if a theme was deleted while navigating.
+                Text("Theme not found").foregroundStyle(.secondary)
             }
         }
         .confirmDialog(
