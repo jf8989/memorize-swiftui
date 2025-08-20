@@ -28,7 +28,7 @@ struct ThemeDetailPlaceholderView: View {
                     .frame(height: 44)
                     .overlay(Text("Color").foregroundColor(.white.opacity(0.9)))
 
-                Text("Pairs: \(theme.pairs)")
+                Text("Cards: \(theme.pairs * 2)")
                     .font(.title3)
 
                 Text(theme.emojis.joined())

@@ -23,7 +23,7 @@ struct ThemeRowView: View {
                     .font(.headline)
 
                 HStack(spacing: 8) {
-                    Text("Pairs: \(theme.pairs)")
+                    Text("Cards: \(theme.pairs * 2)")  // was "Pairs: N"
                         .font(.subheadline)
                         .foregroundColor(.secondary)
 

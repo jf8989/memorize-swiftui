@@ -29,10 +29,9 @@ final class MemorizeGameViewModel: ObservableObject {
     private let themeStore: ThemeStoreProtocol
 
     // MARK: - Init
-    init(store: ThemeStoreProtocol = ThemeStore.shared) {
-        self.themeStore = store
-        // Ensure persisted themes exist; seed one-time from legacy.
-        themeStore.seedIfEmpty(from: EmojiThemeModel.themes)
+    init(store: ThemeStoreProtocol? = nil) {
+        self.themeStore = store ?? ThemeStore.shared  // main-actor safe here
+        self.themeStore.seedIfEmpty(from: EmojiThemeModel.themes)
     }
 
     deinit { timer?.invalidate() }
