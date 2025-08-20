@@ -26,6 +26,14 @@ final class MemorizeGameViewModel: ObservableObject {
     private var gameStartTime: Date?
     private var gradientRGBAs: (RGBA, RGBA)?
     /// UI-only: optional gradient for card backs
+    private let themeStore: ThemeStoreProtocol
+
+    // MARK: - Init
+    init(store: ThemeStoreProtocol = ThemeStore.shared) {
+        self.themeStore = store
+        // Ensure persisted themes exist; seed one-time from legacy.
+        themeStore.seedIfEmpty(from: EmojiThemeModel.themes)
+    }
 
     deinit { timer?.invalidate() }
 
@@ -38,7 +46,7 @@ final class MemorizeGameViewModel: ObservableObject {
         Color(rgba: selectedTheme?.rgba ?? .gray)
     }
 
-    /// Optional theme gradient for the card back.
+    /// Optional theme gradient for the card back (nil after seed; gradients were legacy-only).
     var themeGradientColor: LinearGradient? {
         guard let pair = gradientRGBAs else { return nil }
         return LinearGradient(
@@ -56,7 +64,7 @@ final class MemorizeGameViewModel: ObservableObject {
 
     // MARK: - Intent
 
-    /// Starts a new game session with a random theme and a valid deck (each emoji appears exactly twice).
+    /// Starts a new game session with a persisted theme and a valid deck (each emoji appears exactly twice).
     func newGame() {
         // Reset session state.
         timer?.invalidate()
@@ -65,17 +73,16 @@ final class MemorizeGameViewModel: ObservableObject {
         isTapEnabled = true
         isGameStarted = true
 
-        // Pick a legacy theme and adapt to the new Theme model.
-        guard let legacy = EmojiThemeModel.themes.randomElement() else {
-            return
-        }
-        let adapted = ThemeAdapter.adapt(from: legacy)
-        selectedTheme = adapted.theme
-        gradientRGBAs = adapted.gradient
+        // Pick a stored theme (themes are persisted and seeded if needed).
+        let themes = themeStore.refresh()
+        guard let picked = themes.randomElement() else { return }
+        selectedTheme = picked
 
-        // Choose N emojis (N is already clamped in Theme).
-        guard let current = selectedTheme else { return }
-        let chosen = Array(current.emojis.shuffled().prefix(current.pairs))
+        // Gradients are not persisted; default to solid color for persisted themes.
+        gradientRGBAs = nil
+
+        // Choose N emojis based on clamped pairs in Theme.
+        let chosen = Array(picked.emojis.shuffled().prefix(picked.pairs))
         let newCards = DeckFactory.makeDeck(from: chosen)
 
         // Reset rules and publish state.
