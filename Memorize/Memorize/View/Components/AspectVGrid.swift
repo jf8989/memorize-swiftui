@@ -9,7 +9,7 @@ where ItemView: View, Item: Identifiable {
     let items: [Item]
     let aspectRatio: CGFloat
     let minimumCellWidth: CGFloat?
-    let availableHeight: CGFloat?  // NEW
+    let availableHeight: CGFloat?
     let content: (Item) -> ItemView
 
     // MARK: - Initialization
@@ -17,7 +17,7 @@ where ItemView: View, Item: Identifiable {
         items: [Item],
         aspectRatio: CGFloat,
         minimumCellWidth: CGFloat? = nil,
-        availableHeight: CGFloat? = nil,  // NEW
+        availableHeight: CGFloat? = nil,
         @ViewBuilder content: @escaping (Item) -> ItemView
     ) {
         self.items = items
@@ -30,7 +30,7 @@ where ItemView: View, Item: Identifiable {
     // MARK: - Body
     var body: some View {
         GeometryReader { geometry in
-            let height = availableHeight ?? geometry.size.height  // NEW: prefer explicit height
+            let height = availableHeight ?? geometry.size.height  // Prefer explicit height
             let fittedWidth = widthThatFits(
                 itemCount: items.count,
                 in: CGSize(width: geometry.size.width, height: height),
