@@ -4,22 +4,23 @@ import SwiftUI
 
 /// Root chooser list for themes.
 struct ThemeChooserView: View {
-    // MARK: - Environment
     @EnvironmentObject private var store: ThemeStore
+    @State private var editingTheme: Theme?
 
-    // MARK: - Body
     var body: some View {
         List(store.themes) { theme in
-            NavigationLink(value: theme.id) {
-                ThemeRowView(theme: theme)
-            }
+            ThemeRowView(theme: theme)
+                .contentShape(Rectangle())
+                .onTapGesture { editingTheme = theme }
+                .swipeActions {
+                    Button("Edit") { editingTheme = theme }
+                }
         }
         .navigationTitle("Themes")
-        .navigationDestination(for: UUID.self) { themeID in
-            ThemeDetailPlaceholderView(themeID: themeID)
+        .sheet(item: $editingTheme) { theme in
+            ThemeEditorView(theme: theme)
         }
         .task {
-            /// One-time seed on first run if empty (idempotent).
             if store.themes.isEmpty {
                 store.seedIfEmpty(from: EmojiThemeModel.themes)
             }
