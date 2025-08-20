@@ -11,7 +11,7 @@ struct MemorizeGameView: View {
     }
 
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
             HeaderView(
                 isGameStarted: viewModel.isGameStarted,
                 score: viewModel.score,
@@ -19,7 +19,7 @@ struct MemorizeGameView: View {
                 themeName: viewModel.themeName,
                 themeColor: viewModel.themeColor
             )
-            Spacer(minLength: 0)
+            // Let the grid take all remaining space between header and button.
             CardsGrid(
                 cards: viewModel.cards,
                 themeColor: viewModel.themeColor,
@@ -27,11 +27,13 @@ struct MemorizeGameView: View {
                 isTapEnabled: viewModel.isTapEnabled,
                 onTap: { viewModel.choose($0) }
             )
-            Spacer(minLength: 0)
+            .frame(maxHeight: .infinity)
+
             NewGameButton(action: viewModel.newGame)
-                .padding(.bottom)
+                .padding(.horizontal)
+                .padding(.vertical, 12)
         }
-        .padding()
+        .padding(.horizontal)
         .navigationTitle(viewModel.themeName)
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -40,8 +42,8 @@ struct MemorizeGameView: View {
 #Preview {
     let demo = Theme(
         name: "Demo",
-        emojis: ["😀", "🐶", "🍕", "⚽"],
-        pairs: 4,
+        emojis: Array("😀🐶🍕⚽🏀🎧🎮🧩🚗🚀").map { String($0) },
+        pairs: 10,
         rgba: .gray
     )
     return MemorizeGameView(viewModel: MemorizeGameViewModel(theme: demo))

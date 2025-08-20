@@ -1,77 +1,74 @@
-// View/Components/AspectVGrid.swift
+//  View/Components/AspectVGrid.swift
 
 import SwiftUI
 
-/// A vertical grid that lays out items with a fixed aspect ratio.
-/// Supports `minimumCellWidth` and an optional `availableHeight` override (useful inside ScrollView).
+/// A vertical grid that lays out items with a fixed aspect ratio and **fits everything**
+/// inside `containerSize` (no scroll). It increases column count until the total height fits.
 struct AspectVGrid<Item, ItemView>: View
 where ItemView: View, Item: Identifiable {
     let items: [Item]
     let aspectRatio: CGFloat
-    let minimumCellWidth: CGFloat?
-    let availableHeight: CGFloat?
+    let containerSize: CGSize
+    let fitAll: Bool
     let content: (Item) -> ItemView
 
-    // MARK: - Initialization
+    // MARK: - Init
     init(
         items: [Item],
         aspectRatio: CGFloat,
-        minimumCellWidth: CGFloat? = nil,
-        availableHeight: CGFloat? = nil,
+        containerSize: CGSize,
+        fitAll: Bool = true,
         @ViewBuilder content: @escaping (Item) -> ItemView
     ) {
         self.items = items
         self.aspectRatio = aspectRatio
-        self.minimumCellWidth = minimumCellWidth
-        self.availableHeight = availableHeight
+        self.containerSize = containerSize
+        self.fitAll = fitAll
         self.content = content
     }
 
     // MARK: - Body
     var body: some View {
-        GeometryReader { geometry in
-            let height = availableHeight ?? geometry.size.height  // Prefer explicit height
-            let fittedWidth = widthThatFits(
-                itemCount: items.count,
-                in: CGSize(width: geometry.size.width, height: height),
-                itemAspectRatio: aspectRatio
-            )
-            let cellWidth = max(fittedWidth, minimumCellWidth ?? 0)
+        let cellWidth: CGFloat = widthThatFitsAll(
+            itemCount: items.count,
+            in: containerSize,
+            itemAspectRatio: aspectRatio
+        )
 
-            LazyVGrid(columns: [adaptiveGridItem(width: cellWidth)], spacing: 0)
-            {
-                ForEach(items) { item in
-                    content(item)
-                        .aspectRatio(aspectRatio, contentMode: .fit)
-                }
+        LazyVGrid(columns: [adaptiveGridItem(width: cellWidth)], spacing: 0) {
+            ForEach(items) { item in
+                content(item)
+                    .aspectRatio(aspectRatio, contentMode: .fit)
             }
         }
     }
 
     // MARK: - Private
+
     private func adaptiveGridItem(width: CGFloat) -> GridItem {
         var gridItem = GridItem(.adaptive(minimum: width))
         gridItem.spacing = 0
         return gridItem
     }
 
-    private func widthThatFits(
+    /// Fit-all strategy: increase columns until all rows fit within the available height.
+    private func widthThatFitsAll(
         itemCount: Int,
         in size: CGSize,
         itemAspectRatio: CGFloat
     ) -> CGFloat {
-        var columnCount = 1
-        var rowCount = itemCount
-        if itemCount == 0 { return size.width }
+        guard itemCount > 0 else { return size.width }
+        var columns = 1
+        var rows = itemCount
         repeat {
-            let itemWidth = size.width / CGFloat(columnCount)
-            let itemHeight = itemWidth / itemAspectRatio
-            if CGFloat(rowCount) * itemHeight < size.height {
-                return itemWidth
+            let w = size.width / CGFloat(columns)
+            let h = w / itemAspectRatio
+            if CGFloat(rows) * h <= size.height {
+                return w
             }
-            columnCount = columnCount + 1
-            rowCount = (itemCount + columnCount - 1) / columnCount
-        } while columnCount < itemCount
-        return size.width / CGFloat(columnCount)
+            columns += 1
+            rows = (itemCount + columns - 1) / columns
+        } while columns < itemCount
+        return size.width / CGFloat(columns)
     }
 }
