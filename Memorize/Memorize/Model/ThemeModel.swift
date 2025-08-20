@@ -1,7 +1,8 @@
-// Model/ThemeModel.swift
+//  Model/ThemeModel.swift
 
 import SwiftUI
 
+/// Identifiable card model used by the game.
 struct Card: Identifiable {
     let id = UUID()
     let content: String
@@ -10,15 +11,16 @@ struct Card: Identifiable {
     var hasBeenSeen: Bool = false
 }
 
-struct EmojiThemeModel: Identifiable {  // main struct for the theme and its properties
+/// A theme definition for the pre-A6 version of the app (static built-ins).
+struct EmojiThemeModel: Identifiable {
     let id = UUID()
     let name: String
     let emojis: [String]
     let numberOfPairs: Int?
     let color: String
     let colorG: String?
-    
-    // Main emoji array for the themes, extending its properties using the struct
+
+    /// Built-in themes used by the current implementation.
     static let themes: [EmojiThemeModel] = [
         EmojiThemeModel(
             name: "Halloween",
@@ -107,7 +109,8 @@ struct EmojiThemeModel: Identifiable {  // main struct for the theme and its pro
     ]
 }
 
-// Arrays of emojis to be used
+// MARK: - Emoji Sources
+
 let halloweenEmojis = [
     "👻", "🎃", "🕷️", "💀", "🧟‍♂️", "🦇", "🧙‍♀️", "🍬", "🍭", "🪦", "🧛‍♂️", "🧞‍♂️", "☠️", "🧹", "🕸️",
 ]
@@ -132,32 +135,26 @@ let techEmojis = [
     "💻", "🖥️", "🖨️", "🕹️", "🧑‍💻", "📱", "📡", "🛰️", "⌨️", "💾",
 ]
 
-// 🎶 Music theme
 let musicEmojis = [
     "🎵", "🎶", "🎸", "🥁", "🎷", "🎺", "🎹", "🎧", "🎤", "📻", "🪕", "🪘",
 ]
 
-// 😊 Emotions theme
 let emotionEmojis = [
     "😀", "😂", "😅", "😍", "😭", "😡", "😱", "🥰", "🤔", "😴", "🥺", "🤯", "😎",
 ]
 
-// 🍕 Food theme
 let foodEmojis = [
     "🍕", "🍔", "🍟", "🌭", "🍿", "🥓", "🥞", "🍣", "🍩", "🍪", "🍉", "🍇", "🍓", "🍜",
 ]
 
-// ⚔️ Fantasy theme
 let fantasyEmojis = [
     "🧙‍♂️", "🧝‍♀️", "🧚‍♂️", "🧛‍♀️", "🐉", "🦄", "🗡️", "⚔️", "🛡️", "📜", "🔮", "🏰", "🪄",
 ]
 
-// ⚽ Sports theme
 let sportsEmojis = [
     "⚽", "🏀", "🏈", "⚾", "🎾", "🏐", "🏉", "🥏", "🥊", "🥋", "⛳", "🏓", "🏸",
 ]
 
-// 🌤️ Weather/Nature theme
 let natureEmojis = [
     "☀️", "🌤️", "🌧️", "⛈️", "🌩️", "🌪️", "🌈", "❄️", "🌊", "🍃", "🌸", "🌻", "🌳",
 ]

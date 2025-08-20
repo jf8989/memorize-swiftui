@@ -1,15 +1,19 @@
-// Views/MemorizeView
+//  Views/MemorizeView.swift
 
 import SwiftUI
 
+/// Root view for the Memorize game.
 struct MemorizeView: View {
-    @Environment(\.colorScheme) var colorScheme  // This allows me to decide what happens when the Color Scheme is "dark", preventing color-masking.
+    // MARK: - Environment
+    @Environment(\.colorScheme) private var colorScheme
 
-    @StateObject var viewModel = MemorizeViewModel()
+    // MARK: - State
+    @StateObject private var viewModel = MemorizeViewModel()
 
+    // MARK: - Body
     var body: some View {
-        VStack {  // we're aligning all of our views vertically in order to organize the UI
-            if viewModel.isGameStarted == true {
+        VStack {
+            if viewModel.isGameStarted {
                 HStack {
                     scoreView
                     Spacer()
@@ -18,30 +22,31 @@ struct MemorizeView: View {
             }
             themeName
             Spacer()
-            cards  // we place the card's grid at the top
-            Spacer()  // we add a space to push them away from each other all the way to the edges
+            cards
+            Spacer()
             newGameButton
         }
         .padding()
     }
 
-    // Title of each theme
+    // MARK: - Header
+
     private var themeName: some View {
-        let color =
+        // Ensure readable title in dark mode when theme color is black.
+        let displayColor =
             (viewModel.themeColor == .black && colorScheme == .dark)
-            ? Color.white
-            : viewModel.themeColor
+            ? Color.white : viewModel.themeColor
 
         return Text(viewModel.themeName)
             .font(.system(size: 36, weight: .bold, design: .rounded))
-            .foregroundColor(color)
+            .foregroundColor(displayColor)
             .shadow(color: .black.opacity(0.20), radius: 4, x: 0, y: 2)
             .padding(.top)
             .padding(.bottom, 6)
             .overlay(
                 Capsule()
                     .frame(height: 4)
-                    .foregroundColor(color)
+                    .foregroundColor(displayColor)
                     .opacity(0.25)
                     .offset(y: 26)
             )
@@ -69,8 +74,9 @@ struct MemorizeView: View {
             .foregroundColor(viewModel.timeRemaining < 10 ? .red : .blue)
     }
 
-    // NEW GAME button (I'll use private var because the View is the only one that should be able to use this.
-    private var newGameButton: some View {  // This is just the visual side of the button
+    // MARK: - Controls
+
+    private var newGameButton: some View {
         Button(action: viewModel.newGame) {
             Text("New Game")
                 .font(.headline)
@@ -84,11 +90,10 @@ struct MemorizeView: View {
         .padding(.bottom)
     }
 
-    // *** CARDS ***
+    // MARK: - Cards Grid
 
-    // main grid where the cards reside
     @ViewBuilder
-    var cards: some View {
+    private var cards: some View {
         if !viewModel.cards.isEmpty {
             ScrollView {
                 LazyVGrid(
@@ -111,56 +116,48 @@ struct MemorizeView: View {
     }
 }
 
-// basic card creation using a separate struct.  This is a reusable component, and represents a single card
-// in the game.  It can be used in multiple places, and is a good example of how to create reusable components
-// in SwiftUI.
+/// A single card view.
 struct CardView: View {
     let card: Card
     let themeColor: Color
     let themeGradient: LinearGradient?
 
-    // Compute the rotation
-    var rotation: Double {
-        card.isFaceUp ? 0 : 180
-    }
+    private var rotation: Double { card.isFaceUp ? 0 : 180 }
 
     var body: some View {
         ZStack {
             if card.isMatched {
-                // Hide matched cards
                 EmptyView()
             } else {
-                // The card front (shows emoji)
+                // Front
                 Group {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.white)
-                        .shadow(radius: 2.5)
-                    RoundedRectangle(cornerRadius: 12)
-                        .strokeBorder(lineWidth: 2)
-                        .foregroundColor(.orange)
-                    Text(card.content)
-                        .font(.largeTitle)
+                    RoundedRectangle(cornerRadius: 12).fill(Color.white).shadow(
+                        radius: 2.5
+                    )
+                    RoundedRectangle(cornerRadius: 12).strokeBorder(
+                        lineWidth: 2
+                    ).foregroundColor(.orange)
+                    Text(card.content).font(.largeTitle)
                 }
                 .opacity(card.isFaceUp ? 1.0 : 0.0)
-                // The card back (shows ?)
+
+                // Back
                 Group {
                     if let gradient = themeGradient {
                         RoundedRectangle(cornerRadius: 12).fill(gradient)
                             .shadow(radius: 2.5)
                     } else {
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(themeColor)
+                        RoundedRectangle(cornerRadius: 12).fill(themeColor)
                             .shadow(radius: 2.5)
                     }
                     Text("?")
                         .bold()
                         .font(.largeTitle)
                         .fontDesign(.serif)
-                        // Rotate the "?" 180° on the Y axis to correct mirroring
                         .rotation3DEffect(
                             .degrees(180),
                             axis: (x: 0, y: 1, z: 0)
-                        )
+                        )  // correct mirroring
                 }
                 .opacity(card.isFaceUp ? 0.0 : 1.0)
             }
