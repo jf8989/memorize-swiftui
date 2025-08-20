@@ -3,7 +3,9 @@
 import SwiftUI
 
 /// ViewModel for the Memorize game. Owns UI-facing state and orchestrates moves via `GameRules`.
+@MainActor
 final class MemorizeGameViewModel: ObservableObject {
+
     // MARK: - Theme & Cards (UI-facing)
     @Published private(set) var selectedTheme: EmojiThemeModel?
     @Published var cards: [Card] = []
@@ -11,26 +13,24 @@ final class MemorizeGameViewModel: ObservableObject {
 
     // MARK: - Timer & Scoring
     @Published var timeRemaining: Int = 120
-    var score: Int { gameRules.score }
+    /// Published mirror of rules.score so the UI updates even if `cards` doesn’t change.
+    @Published private(set) var score: Int = 0
 
     // MARK: - Session State
-    var gameStartTime: Date?
-    var isGameStarted: Bool = false
-    var isGameOver: Bool { cards.allSatisfy { $0.isMatched } }
-    var showScore: Bool = false
+    @Published var isGameStarted: Bool = false
+    @Published var showScore: Bool = false
 
     // MARK: - Private
     private var gameRules = GameRules(cards: [])
     private var timer: Timer?
+    private var gameStartTime: Date?
 
     deinit { timer?.invalidate() }
 
     // MARK: - Derived Theme UI
 
     /// Whether the theme uses a gradient (two colors) for the card back.
-    var isGradient: Bool {
-        selectedTheme?.colorG != nil
-    }
+    var isGradient: Bool { selectedTheme?.colorG != nil }
 
     /// Primary theme color as `Color`.
     var themeColor: Color {
@@ -74,47 +74,46 @@ final class MemorizeGameViewModel: ObservableObject {
 
     // MARK: - Intent
 
-    /// Starts a new game session with a random theme and a valid deck (exactly two cards per chosen emoji).
+    /// Starts a new game session with a random theme and a valid deck (each emoji appears exactly twice).
     func newGame() {
         // Reset session state.
         timer?.invalidate()
         gameStartTime = Date()
         timeRemaining = 120
-        gameRules.score = 0
         isTapEnabled = true
         isGameStarted = true
-        startTimer()
 
-        // Pick a theme and build the deck.
+        // Pick a theme and build the deck via factory.
         guard let theme = EmojiThemeModel.themes.randomElement() else { return }
         selectedTheme = theme
 
-        // Choose N emojis and build the deck via factory.
         let chosenEmojis = Array(
             theme.emojis.shuffled().prefix(safeNumberOfPairs)
         )
         let newCards = DeckFactory.makeDeck(from: chosenEmojis)
 
-        cards = newCards
-        gameRules = GameRules(cards: cards)
+        // Reset rules and publish synced state.
+        gameRules = GameRules(cards: newCards)
+        gameRules.score = 0
+        syncFromRules()
+
+        startTimer()
     }
 
     /// Handles a user tapping a card.
     func choose(_ card: Card) {
         gameRules.choose(card: card)
-        cards = gameRules.cards
+        syncFromRules()
 
         // If two unmatched cards are face up, briefly show them before flipping back down.
         if gameRules.indicesOfFaceUpUnmatchedCards != nil {
             timeRemaining -= 5
             isTapEnabled = false
-
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                self.gameRules.flipBackUnmatchedCards()
-                self.cards = self.gameRules.cards
-                if self.timeRemaining > 0 && !self.isGameOver {
-                    self.isTapEnabled = true
-                }
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                gameRules.flipBackUnmatchedCards()
+                syncFromRules()
+                if timeRemaining > 0 && !isGameOver { isTapEnabled = true }
             }
         } else if gameRules.isThisAmatch {
             // Match: award points based on elapsed time.
@@ -122,6 +121,7 @@ final class MemorizeGameViewModel: ObservableObject {
             let points = pointsForElapsedTime(elapsed)
             gameRules.score += points
             gameRules.reset()
+            syncFromRules()
 
             if isGameOver { endGame() }
         }
@@ -130,16 +130,19 @@ final class MemorizeGameViewModel: ObservableObject {
     // MARK: - Timer
 
     private func startTimer() {
+        timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) {
             [weak self] _ in
-            guard let self else { return }
-            if timeRemaining > 0 {
-                timeRemaining -= 1
-            }
-            if timeRemaining <= 0 {
-                endGame()
+            Task { @MainActor in
+                guard let self else { return }
+                guard self.timeRemaining > 0 else {
+                    self.endGame()
+                    return
+                }
+                self.timeRemaining -= 1
             }
         }
+        timer?.tolerance = 0.1
     }
 
     private func endGame() {
@@ -147,12 +150,14 @@ final class MemorizeGameViewModel: ObservableObject {
         timer = nil
         isTapEnabled = false
         timeRemaining = 0
+        isGameStarted = false
     }
 
     // MARK: - Scoring Helpers
 
     private func elapsedTimeSinceStart() -> Int {
-        Date().seconds(since: gameStartTime)
+        let now = Date()
+        return Int(now.timeIntervalSince(gameStartTime ?? now))
     }
 
     private func pointsForElapsedTime(_ elapsed: Int) -> Int {
@@ -182,5 +187,19 @@ final class MemorizeGameViewModel: ObservableObject {
         case "cyan": return .cyan
         default: return .gray
         }
+    }
+
+    // MARK: - Sync
+
+    /// Keeps `@Published` view state (`cards`, `score`) in sync with the engine (`gameRules`).
+    private func syncFromRules() {
+        cards = gameRules.cards
+        score = gameRules.score
+    }
+
+    // MARK: - Derived Flags
+
+    private var isGameOver: Bool {
+        cards.allSatisfy { $0.isMatched }
     }
 }
