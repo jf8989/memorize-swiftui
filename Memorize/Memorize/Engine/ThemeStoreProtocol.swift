@@ -3,6 +3,7 @@
 import Foundation
 
 /// Protocol-first store for Themes (Codable, UI-free).
+@MainActor
 protocol ThemeStoreProtocol: AnyObject {
     var themes: [Theme] { get }
     /// Reloads from persistence and returns the fresh list.

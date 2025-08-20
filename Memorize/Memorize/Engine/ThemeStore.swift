@@ -3,17 +3,18 @@
 import Foundation
 
 /// UserDefaults-backed Theme store (JSON). Engine-only; no UI types.
-final class ThemeStore: ThemeStoreProtocol {
+@MainActor
+final class ThemeStore: ObservableObject, ThemeStoreProtocol {
 
-    // MARK: - Singleton (default)
+    // MARK: - Singleton
     static let shared = ThemeStore()
 
     // MARK: - Keys
     private let themesKey = "com.ravn.memorize.themeStore.themes.v1"
     private let seededKey = "com.ravn.memorize.themeStore.seeded.v1"
 
-    // MARK: - State
-    private(set) var themes: [Theme] = []
+    // MARK: - Published State
+    @Published private(set) var themes: [Theme] = []
 
     // MARK: - Deps
     private let defaults: UserDefaults
@@ -71,10 +72,8 @@ final class ThemeStore: ThemeStoreProtocol {
     private func load() -> [Theme] {
         guard let data = defaults.data(forKey: themesKey) else { return [] }
         do {
-            let decoded = try decoder.decode([Theme].self, from: data)
-            return decoded
+            return try decoder.decode([Theme].self, from: data)
         } catch {
-            // On decode failure, clear bad payload to avoid boot loops.
             defaults.removeObject(forKey: themesKey)
             return []
         }
@@ -85,7 +84,7 @@ final class ThemeStore: ThemeStoreProtocol {
             let data = try encoder.encode(themes)
             defaults.set(data, forKey: themesKey)
         } catch {
-            // Intentionally silent for now; we'll surface errors when we add UI around editing.
+            // Silent for now; errors will be surfaced by editor UI later.
         }
     }
 }

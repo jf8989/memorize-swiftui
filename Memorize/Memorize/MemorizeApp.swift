@@ -1,17 +1,19 @@
-//
-//  MemorizeApp.swift
-//  Memorize
-//
-//  Created by Juan Francisco Marcenaro Arellano on 16/07/25.
-//
+//  App/MemorizeApp.swift
 
 import SwiftUI
 
 @main
 struct MemorizeApp: App {
+    // MARK: - Store Host
+    @StateObject private var themeStore = ThemeStore.shared
+
+    // MARK: - Scene
     var body: some Scene {
         WindowGroup {
-            MemorizeMainView()
+            NavigationStack {
+                ThemeChooserView()
+            }
+            .environmentObject(themeStore)
         }
     }
 }
