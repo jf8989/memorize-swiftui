@@ -15,7 +15,7 @@ struct CardView: View {
             if card.isMatched {
                 EmptyView()
             } else {
-                var cardShape = RoundedRectangle(cornerRadius: 12)
+                let cardShape = RoundedRectangle(cornerRadius: 12)
                 // Front
                 Group {
                     cardShape
