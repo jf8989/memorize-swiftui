@@ -1,34 +1,37 @@
-//  View/Root/MemorizeRootView.swift
+//  View/Root/RootNavigator.swift
 
 import SwiftUI
+import UIKit
 
-struct MemorizeRootView: View {
-    @Environment(\.horizontalSizeClass) private var hSize
+struct RootNavigator: View {
     @EnvironmentObject private var store: ThemeStore
-    @State private var selectedID: UUID?
-    private let cache = GameVMCache.shared
+    @StateObject private var cache = GameVMCache()  // optional caching (Phase 10)
+    @State private var selection: UUID?  // iPad sidebar selection
+
+    // Shared edit/delete state (reused in iPad)
+    @State private var editingTheme: Theme?
+    @State private var pendingDelete: Theme?
+    @State private var showDeleteConfirm = false
+    @State private var pendingSelectAfterEdit: UUID?
 
     var body: some View {
-        if hSize == .regular {
-            // iPad: Sidebar → Detail
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            // iPad: NavigationSplitView (no nested stacks in columns)
             NavigationSplitView {
-                List(selection: $selectedID) {
-                    ForEach(store.themes) { theme in
-                        TextRow(theme)  // compact row; reuse your ThemeRowView if you prefer
-                            .tag(theme.id)
-                            .swipeActions(edge: .leading) {
-                                Button("Edit") { editingTheme = theme }
+                List(store.themes, selection: $selection) { theme in
+                    ThemeRowView(theme: theme)
+                        .tag(theme.id)
+                        .swipeActions(edge: .leading) {
+                            Button("Edit") { editingTheme = theme }
+                        }
+                        .swipeActions(edge: .trailing) {
+                            Button(role: .destructive) {
+                                pendingDelete = theme
+                                showDeleteConfirm = true
+                            } label: {
+                                Label("Delete", systemImage: "trash")
                             }
-                            .swipeActions {
-                                Button(role: .destructive) {
-                                    pendingDelete = theme
-                                    showDeleteConfirm = true
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
-                                }
-                            }
-                    }
-                    .onDelete(perform: delete)
+                        }
                 }
                 .navigationTitle("Themes")
                 .toolbar {
@@ -39,90 +42,91 @@ struct MemorizeRootView: View {
                         } label: {
                             Image(systemName: "plus")
                         }
+                        .accessibilityLabel("Add Theme")
                     }
                 }
             } detail: {
-                if let id = selectedID,
+                if let id = selection,
                     let theme = store.themes.first(where: { $0.id == id })
                 {
-                    MemorizeGameView(viewModel: cache.vm(for: theme))
+                    MemorizeGameView(viewModel: cache.vm(for: theme))  // cached VM per theme
                 } else {
-                    ContentUnavailableView(
-                        "Pick a Theme",
-                        systemImage: "square.grid.2x2"
-                    )
+                    ContentPlaceholder()
                 }
             }
-            // Shared modals/confirm (so we don’t duplicate logic)
-            .sheet(item: $editingTheme) { ThemeEditorView(theme: $0) }
+            // Sheet editor (modal over split)
+            .sheet(item: $editingTheme) { theme in
+                ThemeEditorView(theme: theme)
+            }
+            .onChange(of: editingTheme) { _, newValue in
+                // when the editor is dismissed, select the newly created theme (once)
+                if newValue == nil, let id = pendingSelectAfterEdit {
+                    selection = id
+                    pendingSelectAfterEdit = nil
+                }
+            }
+            // Platform-aware confirm (alert on iPad)
             .confirmDialog(
                 title: "Delete Theme?",
                 isPresented: $showDeleteConfirm,
                 presenting: pendingDelete,
-                message: "This cannot be undone.",
-                confirmTitle: { "Delete “\($0.name)”" },
+                message:
+                    "This will remove the theme and its settings permanently.",
+                confirmTitle: { theme in "Delete “\(theme.name)”" },
                 confirmRole: .destructive
-            ) { theme in delete(theme: theme) }
+            ) { theme in
+                delete(theme: theme)
+            }
             .task {
                 if store.themes.isEmpty {
                     store.seedIfEmpty(from: EmojiThemeModel.themes)
                 }
             }
         } else {
-            // iPhone: original chooser-in-stack
-            NavigationStack { ThemeChooserView() }
-        }
-    }
-
-    // MARK: - Local UI state (iPad only)
-    @State private var editingTheme: Theme?
-    @State private var pendingDelete: Theme?
-    @State private var showDeleteConfirm = false
-
-    // MARK: - Helpers
-    private func addNewTheme() {
-        let name = NameUniquifier.unique(
-            base: "New Theme",
-            existing: store.themes.map(\.name)
-        )
-        let newTheme = Theme(name: name, emojis: [], pairs: 2, rgba: .gray)
-        store.upsert(newTheme)
-        editingTheme = newTheme
-        selectedID = newTheme.id
-    }
-
-    private func delete(theme: Theme) {
-        withAnimation {
-            GameVMCache.shared.remove(id: theme.id)
-            store.delete(id: theme.id)
-            if selectedID == theme.id { selectedID = nil }
-            pendingDelete = nil
-        }
-    }
-
-    private func delete(at offsets: IndexSet) {
-        withAnimation {
-            for id in offsets.map({ store.themes[$0].id }) {
-                GameVMCache.shared.remove(id: id)
-                if selectedID == id { selectedID = nil }
-                store.delete(id: id)
+            // iPhone: keep your existing stack + chooser untouched
+            NavigationStack {
+                ThemeChooserView()
             }
         }
     }
 
-    // Tiny inline row to keep split view tidy
-    @ViewBuilder private func TextRow(_ theme: Theme) -> some View {
-        HStack {
-            RoundedRectangle(cornerRadius: 4)
-                .fill(Color(rgba: theme.rgba))
-                .frame(width: 14, height: 14)
-                .accessibilityLabel("Theme color")
-            Text(theme.name).lineLimit(1)
-            Spacer()
-            Text("Cards: \(theme.pairs * 2)")
-                .font(.footnote)
+    // MARK: - iPad intents
+
+    private func addNewTheme() {
+        let existingNames = store.themes.map(\.name)
+        let name = NameUniquifier.unique(
+            base: "New Theme",
+            existing: existingNames
+        )
+        let newTheme = Theme(name: name, emojis: [], pairs: 2, rgba: .gray)
+        store.upsert(newTheme)
+        editingTheme = newTheme
+        pendingSelectAfterEdit = newTheme.id
+        editingTheme = newTheme  // keep opening the editor as before
+    }
+
+    private func delete(theme: Theme) {
+        withAnimation {
+            if editingTheme?.id == theme.id { editingTheme = nil }
+            if selection == theme.id { selection = nil }
+            cache.remove(for: theme.id)  // drop cached VM if present
+            store.delete(id: theme.id)
+            pendingDelete = nil
+        }
+    }
+}
+
+// MARK: - Slim placeholder for right column
+private struct ContentPlaceholder: View {
+    var body: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "gamecontroller")
+                .font(.system(size: 44, weight: .regular))
+                .foregroundStyle(.secondary)
+            Text("Select a Theme")
+                .font(.headline)
                 .foregroundStyle(.secondary)
         }
-        .contentShape(Rectangle())
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

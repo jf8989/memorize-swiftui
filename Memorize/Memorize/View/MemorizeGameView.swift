@@ -2,12 +2,12 @@
 
 import SwiftUI
 
-/// Game screen for a single Theme. Owns its VM via StateObject.
+/// Game screen for a single Theme. Parent owns the VM (ObservedObject in split view).
 struct MemorizeGameView: View {
-    @StateObject private var viewModel: MemorizeGameViewModel
+    @ObservedObject var viewModel: MemorizeGameViewModel
 
     init(viewModel: MemorizeGameViewModel) {
-        _viewModel = StateObject(wrappedValue: viewModel)
+        self.viewModel = viewModel
     }
 
     var body: some View {

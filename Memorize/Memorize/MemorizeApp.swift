@@ -10,10 +10,8 @@ struct MemorizeApp: App {
     // MARK: - Scene
     var body: some Scene {
         WindowGroup {
-            NavigationStack {
-                ThemeChooserView()
-            }
-            .environmentObject(themeStore)
+            RootNavigator()                 // ⬅️ iPhone = Stack, iPad = SplitView
+                .environmentObject(themeStore)
         }
     }
 }
