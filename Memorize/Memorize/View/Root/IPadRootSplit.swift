@@ -2,20 +2,15 @@
 
 import SwiftUI
 
-/// iPad split navigator with persisted sidebar visibility, edit/delete, and VM caching.
+/// Split navigator with persisted sidebar visibility, edit/delete, and VM caching.
 struct IPadRootSplit: View {
-    // MARK: - Environment
     @EnvironmentObject private var store: ThemeStore
 
-    // MARK: - Split Visibility (persisted)
-    @StateObject private var splitVM = SplitVisibilityViewModel()
-    private var columnVisibilityBinding: Binding<NavigationSplitViewVisibility>
-    {
-        Binding(
-            get: { splitVM.visibility },
-            set: { splitVM.set($0) }
-        )
-    }
+    @Environment(\.horizontalSizeClass) private var hSize
+    // @Environment(\.verticalSizeClass) private var vSize   // ← remove if unused
+
+    // MARK: - Injected split VM (no @StateObject here)
+    @ObservedObject var splitVM: SplitVisibilityViewModel  // ← injected
 
     // MARK: - Cache / Selection / Editor
     @StateObject private var cache = GameVMCache()
@@ -26,67 +21,76 @@ struct IPadRootSplit: View {
     @State private var pendingSelectAfterEdit: UUID?
 
     var body: some View {
-        NavigationSplitView(columnVisibility: columnVisibilityBinding) {
-            List(store.themes, selection: $selection) { theme in
-                ThemeRowView(theme: theme)
-                    .tag(theme.id)
-                    .swipeActions(edge: .leading) {
-                        Button("Edit") { editingTheme = theme }
-                    }
-                    .swipeActions(edge: .trailing) {
-                        Button(role: .destructive) {
-                            pendingDelete = theme
-                            showDeleteConfirm = true
-                        } label: {
-                            Label("Delete", systemImage: "trash")
+        let _ = Self._printChanges()
+
+        Group {
+            NavigationSplitView(columnVisibility: $splitVM.liveVisibility) {
+                List(store.themes, selection: $selection) { theme in
+                    ThemeRowView(theme: theme)
+                        .tag(theme.id)
+                        .swipeActions(edge: .leading) {
+                            Button("Edit") { editingTheme = theme }
+                        }
+                        .swipeActions(edge: .trailing) {
+                            Button(role: .destructive) {
+                                pendingDelete = theme
+                                showDeleteConfirm = true
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
+                }
+                .navigationTitle("Themes")
+                .toolbar {
+                    if hSize == .compact {
+                        ToolbarItem(placement: .cancellationAction) {
+                            EditButton()
                         }
                     }
-            }
-            .navigationTitle("Themes")
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        addNewTheme()
-                    } label: {
-                        Image(systemName: "plus")
+                    ToolbarItem(placement: .primaryAction) {
+                        Button {
+                            addNewTheme()
+                        } label: {
+                            Image(systemName: "plus")
+                        }
+                        .accessibilityLabel("Add Theme")
                     }
-                    .accessibilityLabel("Add Theme")
+                }
+            } detail: {
+                if let id = selection,
+                    let theme = store.themes.first(where: { $0.id == id })
+                {
+                    MemorizeGameView(viewModel: cache.vm(for: theme))
+                } else {
+                    ContentPlaceholder()
                 }
             }
-        } detail: {
-            if let id = selection,
-                let theme = store.themes.first(where: { $0.id == id })
-            {
-                MemorizeGameView(viewModel: cache.vm(for: theme))
-            } else {
-                ContentPlaceholder()
+            .navigationSplitViewStyle(.balanced)
+            .sheet(item: $editingTheme) { ThemeEditorView(theme: $0) }
+            .onChange(of: editingTheme) { oldValue, newValue in
+                if newValue == nil, let id = pendingSelectAfterEdit {
+                    selection = id
+                    pendingSelectAfterEdit = nil
+                }
+            }
+            .confirmDialog(
+                title: "Delete Theme?",
+                isPresented: $showDeleteConfirm,
+                presenting: pendingDelete,
+                message:
+                    "This will remove the theme and its settings permanently.",
+                confirmTitle: { "Delete “\($0.name)”" },
+                confirmRole: .destructive
+            ) { delete(theme: $0) }
+            .task {
+                if store.themes.isEmpty {
+                    store.seedIfEmpty(from: EmojiThemeModel.themes)
+                }
             }
         }
-        .navigationSplitViewStyle(.balanced)
-        .sheet(item: $editingTheme) { theme in
-            ThemeEditorView(theme: theme)
-        }
-        .onChange(of: editingTheme) { _, newValue in
-            // After the editor dismisses, auto-select the newly created theme once (prevents early timer).
-            if newValue == nil, let id = pendingSelectAfterEdit {
-                selection = id
-                pendingSelectAfterEdit = nil
-            }
-        }
-        .confirmDialog(
-            title: "Delete Theme?",
-            isPresented: $showDeleteConfirm,
-            presenting: pendingDelete,
-            message: "This will remove the theme and its settings permanently.",
-            confirmTitle: { theme in "Delete “\(theme.name)”" },
-            confirmRole: .destructive
-        ) { theme in
-            delete(theme: theme)
-        }
-        .task {
-            if store.themes.isEmpty {
-                store.seedIfEmpty(from: EmojiThemeModel.themes)
-            }
+        .onAppear { splitVM.applySizeClass(hSize) }
+        .onChange(of: hSize) { oldSize, newSize in
+            splitVM.applySizeClass(newSize)
         }
     }
 

@@ -2,18 +2,14 @@
 
 import SwiftUI
 
-/// Top-level navigator.
-/// - iPhone: NavigationStack with the chooser
-/// - iPad:   Split view hosted in a separate, modular file
+/// Top-level navigator: single SplitView for all devices.
 struct RootNavigator: View {
     @EnvironmentObject private var store: ThemeStore
+    @StateObject private var splitVM = SplitVisibilityViewModel()  // ← hoisted owner
 
     var body: some View {
-        if UIDevice.current.userInterfaceIdiom == .pad {
-            IPadRootSplit()
-                .environmentObject(store)
-        } else {
-            NavigationStack { ThemeChooserView() }
-        }
+        let _ = Self._printChanges()
+        IPadRootSplit(splitVM: splitVM)
+            .environmentObject(store)
     }
 }

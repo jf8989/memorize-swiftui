@@ -2,27 +2,52 @@
 
 import SwiftUI
 
-/// Persists iPad NavigationSplitView visibility across rotations/app launches.
+/// Persists NavigationSplitView visibility across rotations/app launches.
 @MainActor
 final class SplitVisibilityViewModel: ObservableObject {
-    @Published private(set) var visibility: NavigationSplitViewVisibility
+    @Published var liveVisibility: NavigationSplitViewVisibility {
+        didSet { persistGuarded(liveVisibility) }
+    }
 
-    private let key = "ui.splitVisibility.raw"
     private let defaults: UserDefaults
+    private let keyCompact = "ui.splitVisibility.compact"
+    private let keyRegular = "ui.splitVisibility.regular"
+    private var currentSizeKey: String = "regular"
+    private var suppressPersistence = false
+    private var lastSizeClassChangeAt: Date?
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        let raw = defaults.string(forKey: key)
-        self.visibility = Self.decode(raw) ?? .all  // default: sidebar visible
+        self.liveVisibility = .all
+        print("SplitVM init")  // ← debug
+    }
+    deinit { print("SplitVM deinit") }  // ← debug
+
+    func applySizeClass(_ size: UserInterfaceSizeClass?) {
+        currentSizeKey = (size == .compact) ? "compact" : "regular"
+        lastSizeClassChangeAt = Date()
+        let stored = defaults.string(forKey: currentSizeKey)
+        let target =
+            Self.decode(stored)
+            ?? ((currentSizeKey == "compact") ? .automatic : .all)
+        suppressPersistence = true
+        liveVisibility = target
+        suppressPersistence = false
     }
 
-    func set(_ newValue: NavigationSplitViewVisibility) {
-        visibility = newValue
-        defaults.set(Self.encode(newValue), forKey: key)
+    private func persistGuarded(_ v: NavigationSplitViewVisibility) {
+        if suppressPersistence { return }
+        if let t = lastSizeClassChangeAt, Date().timeIntervalSince(t) < 0.5 {
+            return
+        }
+        defaults.set(
+            Self.encode(v),
+            forKey: (currentSizeKey == "compact") ? keyCompact : keyRegular
+        )
+        print("SplitVM persisted \(v) for \(currentSizeKey)")  // ← debug
     }
 
-    // MARK: - Codec
-
+    // MARK: - Codec (unchanged)
     private static func encode(_ v: NavigationSplitViewVisibility) -> String {
         switch v {
         case .all: return "all"
@@ -31,7 +56,6 @@ final class SplitVisibilityViewModel: ObservableObject {
         default: return "automatic"
         }
     }
-
     private static func decode(_ raw: String?) -> NavigationSplitViewVisibility?
     {
         switch raw {
