@@ -28,7 +28,7 @@ struct ThemeRowView: View {
                         .foregroundColor(.secondary)
 
                     Text(theme.emojis.joined())
-                        .font(.subheadline)
+                        .font(.title3)
                         .lineLimit(1)
                         .truncationMode(.tail)
                         .foregroundColor(.secondary)

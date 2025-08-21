@@ -23,7 +23,15 @@ struct CardView: View {
                     RoundedRectangle(cornerRadius: 12).strokeBorder(
                         lineWidth: 2
                     ).foregroundColor(.orange)
-                    Text(card.content).font(.largeTitle)
+                    // ⬇️ size emoji to the card’s shortest side
+                    GeometryReader { geo in
+                        let s = min(geo.size.width, geo.size.height) * 0.62
+                        Text(card.content)
+                            .font(.system(size: s))
+                            .minimumScaleFactor(0.5)
+                            .lineLimit(1)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
                 }
                 .opacity(card.isFaceUp ? 1.0 : 0.0)
 
@@ -38,14 +46,19 @@ struct CardView: View {
                             .fill(themeColor)
                             .shadow(radius: 2.5)
                     }
-                    Text("?")
-                        .bold()
-                        .font(.largeTitle)
-                        .fontDesign(.serif)
-                        .rotation3DEffect(
-                            .degrees(180),
-                            axis: (x: 0, y: 1, z: 0)
-                        )  // correct mirroring
+                    // Make the "?" a bit larger than the front emoji
+                    GeometryReader { geo in
+                        let s = min(geo.size.width, geo.size.height) * 0.68  // slightly larger
+                        Text("?")
+                            .bold()
+                            .font(.system(size: s))
+                            .fontDesign(.serif)
+                            .rotation3DEffect(
+                                .degrees(180),
+                                axis: (x: 0, y: 1, z: 0)
+                            )  // correct mirroring
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
                 }
                 .opacity(card.isFaceUp ? 0.0 : 1.0)
             }
