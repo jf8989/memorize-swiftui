@@ -15,14 +15,14 @@ struct CardView: View {
             if card.isMatched {
                 EmptyView()
             } else {
-                var base = RoundedRectangle(cornerRadius: 12)
+                var cardShape = RoundedRectangle(cornerRadius: 12)
                 // Front
                 Group {
-                    base
+                    cardShape
                         .fill(Color.white).shadow(
                             radius: 2.5
                         )
-                    base
+                    cardShape
                         .strokeBorder(
                             lineWidth: 2
                         ).foregroundColor(.orange)
@@ -41,11 +41,11 @@ struct CardView: View {
                 // Back
                 Group {
                     if let gradient = themeGradient {
-                        base
+                        cardShape
                             .fill(gradient)
                             .shadow(radius: 2.5)
                     } else {
-                        base
+                        cardShape
                             .fill(themeColor)
                             .shadow(radius: 2.5)
                     }
