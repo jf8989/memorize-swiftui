@@ -10,7 +10,7 @@ struct MemorizeApp: App {
     // MARK: - Scene
     var body: some Scene {
         WindowGroup {
-            RootNavigator()                 // ⬅️ iPhone = Stack, iPad = SplitView
+            RootNavigator()  // ⬅️ iPhone = Stack, iPad = SplitView
                 .environmentObject(themeStore)
         }
     }

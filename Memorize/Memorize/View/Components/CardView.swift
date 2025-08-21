@@ -15,14 +15,17 @@ struct CardView: View {
             if card.isMatched {
                 EmptyView()
             } else {
+                var base = RoundedRectangle(cornerRadius: 12)
                 // Front
                 Group {
-                    RoundedRectangle(cornerRadius: 12).fill(Color.white).shadow(
-                        radius: 2.5
-                    )
-                    RoundedRectangle(cornerRadius: 12).strokeBorder(
-                        lineWidth: 2
-                    ).foregroundColor(.orange)
+                    base
+                        .fill(Color.white).shadow(
+                            radius: 2.5
+                        )
+                    base
+                        .strokeBorder(
+                            lineWidth: 2
+                        ).foregroundColor(.orange)
                     // ⬇️ size emoji to the card’s shortest side
                     GeometryReader { geo in
                         let s = min(geo.size.width, geo.size.height) * 0.62
@@ -38,11 +41,11 @@ struct CardView: View {
                 // Back
                 Group {
                     if let gradient = themeGradient {
-                        RoundedRectangle(cornerRadius: 12)
+                        base
                             .fill(gradient)
                             .shadow(radius: 2.5)
                     } else {
-                        RoundedRectangle(cornerRadius: 12)
+                        base
                             .fill(themeColor)
                             .shadow(radius: 2.5)
                     }
