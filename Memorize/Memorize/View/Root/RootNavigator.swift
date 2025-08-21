@@ -5,19 +5,23 @@ import UIKit
 
 struct RootNavigator: View {
     @EnvironmentObject private var store: ThemeStore
-    @StateObject private var cache = GameVMCache()  // optional caching (Phase 10)
-    @State private var selection: UUID?  // iPad sidebar selection
+    @StateObject private var cache = GameVMCache()
 
-    // Shared edit/delete state (reused in iPad)
+    // Control initial visibility so the sidebar is shown
+    @State private var columnVisibility: NavigationSplitViewVisibility = .all
+
+    // Selection + editor
+    @State private var selection: UUID?
     @State private var editingTheme: Theme?
     @State private var pendingDelete: Theme?
     @State private var showDeleteConfirm = false
+
+    // Defer selection until editor dismisses (prevents early timer)
     @State private var pendingSelectAfterEdit: UUID?
 
     var body: some View {
         if UIDevice.current.userInterfaceIdiom == .pad {
-            // iPad: NavigationSplitView (no nested stacks in columns)
-            NavigationSplitView {
+            NavigationSplitView(columnVisibility: $columnVisibility) {  // ⬅️ force sidebar visible
                 List(store.themes, selection: $selection) { theme in
                     ThemeRowView(theme: theme)
                         .tag(theme.id)
@@ -35,7 +39,7 @@ struct RootNavigator: View {
                 }
                 .navigationTitle("Themes")
                 .toolbar {
-                    ToolbarItem(placement: .cancellationAction) { EditButton() }
+                    // REMOVED: EditButton() on iPad to avoid detail clearing
                     ToolbarItem(placement: .primaryAction) {
                         Button {
                             addNewTheme()
@@ -49,23 +53,22 @@ struct RootNavigator: View {
                 if let id = selection,
                     let theme = store.themes.first(where: { $0.id == id })
                 {
-                    MemorizeGameView(viewModel: cache.vm(for: theme))  // cached VM per theme
+                    MemorizeGameView(viewModel: cache.vm(for: theme))
                 } else {
                     ContentPlaceholder()
                 }
             }
-            // Sheet editor (modal over split)
+            .navigationSplitViewStyle(.balanced)  // ⬅️ nicer default sizing
             .sheet(item: $editingTheme) { theme in
                 ThemeEditorView(theme: theme)
             }
             .onChange(of: editingTheme) { _, newValue in
-                // when the editor is dismissed, select the newly created theme (once)
+                // After editor dismisses, select the newly created theme exactly once
                 if newValue == nil, let id = pendingSelectAfterEdit {
                     selection = id
                     pendingSelectAfterEdit = nil
                 }
             }
-            // Platform-aware confirm (alert on iPad)
             .confirmDialog(
                 title: "Delete Theme?",
                 isPresented: $showDeleteConfirm,
@@ -81,42 +84,41 @@ struct RootNavigator: View {
                 if store.themes.isEmpty {
                     store.seedIfEmpty(from: EmojiThemeModel.themes)
                 }
+                // Optional: keep sidebar shown on first appear
+                columnVisibility = .all
             }
         } else {
-            // iPhone: keep your existing stack + chooser untouched
-            NavigationStack {
-                ThemeChooserView()
-            }
+            // iPhone unchanged: stack + chooser (with EditButton inside ThemeChooserView)
+            NavigationStack { ThemeChooserView() }
         }
     }
 
     // MARK: - iPad intents
 
     private func addNewTheme() {
-        let existingNames = store.themes.map(\.name)
         let name = NameUniquifier.unique(
             base: "New Theme",
-            existing: existingNames
+            existing: store.themes.map(\.name)
         )
         let newTheme = Theme(name: name, emojis: [], pairs: 2, rgba: .gray)
         store.upsert(newTheme)
+        pendingSelectAfterEdit = newTheme.id  // ⬅️ select after editor closes
         editingTheme = newTheme
-        pendingSelectAfterEdit = newTheme.id
-        editingTheme = newTheme  // keep opening the editor as before
     }
 
     private func delete(theme: Theme) {
         withAnimation {
             if editingTheme?.id == theme.id { editingTheme = nil }
             if selection == theme.id { selection = nil }
-            cache.remove(for: theme.id)  // drop cached VM if present
+            cache.remove(for: theme.id)
             store.delete(id: theme.id)
             pendingDelete = nil
         }
     }
 }
 
-// MARK: - Slim placeholder for right column
+// MARK: - Placeholder (iPad detail)
+
 private struct ContentPlaceholder: View {
     var body: some View {
         VStack(spacing: 12) {
@@ -128,5 +130,6 @@ private struct ContentPlaceholder: View {
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemBackground))
     }
 }
