@@ -1,4 +1,4 @@
-//  View/Root/AppSplitView.swift
+//  View/AppSplitView.swift
 
 import SwiftUI
 
@@ -81,25 +81,26 @@ struct AppSplitView: View {
 
     // MARK: - Sidebar (Theme list with Edit / Add / Delete)
     private var sidebar: some View {
-        List(store.themes, selection: $selection) { theme in
-            ThemeRowView(theme: theme)
-                .tag(theme.id)
-                .swipeActions(edge: .leading) {
-                    Button("Edit") { editingTheme = theme }
-                }
-                .swipeActions(edge: .trailing) {
-                    Button(role: .destructive) {
-                        pendingDelete = theme
-                        showDeleteConfirm = true
-                    } label: {
-                        Label("Delete", systemImage: "trash")
+        List(selection: $selection) {
+            ForEach(store.themes) { theme in
+                ThemeRowView(theme: theme)
+                    .tag(theme.id)  // needed for single-selection List
+                    .swipeActions(edge: .leading) {
+                        Button("Edit") { editingTheme = theme }
                     }
-                }
+                    .swipeActions(edge: .trailing) {
+                        Button(role: .destructive) {
+                            pendingDelete = theme
+                            showDeleteConfirm = true
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
+            }
+            .onDelete(perform: delete(at:))  // ← attach to ForEach
         }
-        .onDelete(perform: delete(at:))  // ← brings back chooser’s delete behavior
         .navigationTitle("Themes")
         .toolbar {
-            // ← Edit button on BOTH iPhone and iPad (same placement as chooser)
             ToolbarItem(placement: .cancellationAction) { EditButton() }
             ToolbarItem(placement: .primaryAction) {
                 Button {

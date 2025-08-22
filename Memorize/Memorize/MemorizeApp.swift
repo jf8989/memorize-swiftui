@@ -1,17 +1,15 @@
-//  App/MemorizeApp.swift
+//  MemorizeApp.swift
 
 import SwiftUI
 
 @main
 struct MemorizeApp: App {
-    // MARK: - Store Host
-    @StateObject private var themeStore = ThemeStore.shared
+    @StateObject private var store = ThemeStore()
 
-    // MARK: - Scene
     var body: some Scene {
         WindowGroup {
-            RootNavigator()  // ⬅️ iPhone = Stack, iPad = SplitView
-                .environmentObject(themeStore)
+            AppSplitView()
+                .environmentObject(store)
         }
     }
 }
