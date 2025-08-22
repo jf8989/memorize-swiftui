@@ -42,8 +42,8 @@ struct MemorizeGameView: View {
 #Preview {
     let demo = Theme(
         name: "Demo",
-        emojis: Array("😀🐶🍕⚽🏀🎧🎮🧩🚗🚀").map { String($0) },
-        pairs: 10,
+        emojis: Array("😀🐶🍕⚽🏀🎧").map { String($0) },
+        pairs: 2,
         rgba: .gray
     )
     return MemorizeGameView(viewModel: MemorizeGameViewModel(theme: demo))

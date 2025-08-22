@@ -10,6 +10,8 @@ where ItemView: View, Item: Identifiable {
     let aspectRatio: CGFloat
     let containerSize: CGSize
     let fitAll: Bool
+    let cellPaddingY: CGFloat  // Vertical padding per cell (top+bottom inside each cell)
+    let outerTopPadding: CGFloat  // Extra top padding applied to the grid
     let content: (Item) -> ItemView
 
     // MARK: - Init
@@ -18,12 +20,16 @@ where ItemView: View, Item: Identifiable {
         aspectRatio: CGFloat,
         containerSize: CGSize,
         fitAll: Bool = true,
+        cellPaddingY: CGFloat = 0,  // ← default keeps old call sites working
+        outerTopPadding: CGFloat = 0,  // ← default keeps old call sites working
         @ViewBuilder content: @escaping (Item) -> ItemView
     ) {
         self.items = items
         self.aspectRatio = aspectRatio
         self.containerSize = containerSize
         self.fitAll = fitAll
+        self.cellPaddingY = cellPaddingY
+        self.outerTopPadding = outerTopPadding
         self.content = content
     }
 
@@ -32,7 +38,9 @@ where ItemView: View, Item: Identifiable {
         let cellWidth: CGFloat = widthThatFitsAll(
             itemCount: items.count,
             in: containerSize,
-            itemAspectRatio: aspectRatio
+            itemAspectRatio: aspectRatio,
+            cellPaddingY: cellPaddingY,
+            outerTopPadding: outerTopPadding
         )
 
         LazyVGrid(columns: [adaptiveGridItem(width: cellWidth)], spacing: 0) {
@@ -55,20 +63,28 @@ where ItemView: View, Item: Identifiable {
     private func widthThatFitsAll(
         itemCount: Int,
         in size: CGSize,
-        itemAspectRatio: CGFloat
+        itemAspectRatio: CGFloat,
+        cellPaddingY: CGFloat,
+        outerTopPadding: CGFloat
     ) -> CGFloat {
         guard itemCount > 0 else { return size.width }
-        var columns = 1
-        var rows = itemCount
-        repeat {
-            let w = size.width / CGFloat(columns)
-            let h = w / itemAspectRatio
-            if CGFloat(rows) * h <= size.height {
-                return w
-            }
-            columns += 1
-            rows = (itemCount + columns - 1) / columns
-        } while columns < itemCount
-        return size.width / CGFloat(columns)
+        let heightAvail = max(0, size.height - outerTopPadding)
+
+        var best: CGFloat = 0
+        for columns in 1...itemCount {
+            let rows = Int(ceil(Double(itemCount) / Double(columns)))
+
+            let maxByWidth = size.width / CGFloat(columns)
+            let perRowAvail = heightAvail / CGFloat(rows)
+            // rows * (w/aspect + 2*pad) <= heightAvail  ⇒  w <= (perRowAvail - 2*pad) * aspect
+            let maxByHeight = max(
+                0,
+                (perRowAvail - 2 * cellPaddingY) * itemAspectRatio
+            )
+
+            let candidate = min(maxByWidth, maxByHeight)
+            if candidate > best { best = candidate }
+        }
+        return best
     }
 }

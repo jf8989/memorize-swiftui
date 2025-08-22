@@ -10,20 +10,25 @@ struct CardsGrid: View {
     let isTapEnabled: Bool
     let onTap: (Card) -> Void
 
+    // keep these in one place so math == layout
+    private let perCellPadding: CGFloat = 6
+    private let gridTopPadding: CGFloat = 8
+    private let aspect: CGFloat = 2.0 / 3.0
+    private let minCellWidth: CGFloat = 70
+
     var body: some View {
         GeometryReader { proxy in
-            let minCellWidth: CGFloat = 70
-
             let computed = widthThatFitsAll(
                 itemCount: cards.count,
                 in: proxy.size,
-                itemAspectRatio: 2.0 / 3.0
+                itemAspectRatio: aspect,
+                cellPaddingY: perCellPadding,
+                outerTopPadding: gridTopPadding
             )
             let needsScroll = computed < minCellWidth
 
             Group {
                 if needsScroll {
-                    // GeometryReader wraps; ScrollView is inside.
                     ScrollView {
                         LazyVGrid(
                             columns: [
@@ -42,18 +47,20 @@ struct CardsGrid: View {
                                 )
                                 .onTapGesture { onTap(card) }
                                 .allowsHitTesting(isTapEnabled)
-                                .aspectRatio(2.0 / 3.0, contentMode: .fit)
-                                .padding(6)
+                                .aspectRatio(aspect, contentMode: .fit)
+                                .padding(perCellPadding)
                             }
                         }
-                        .padding(.top, 8)
+                        .padding(.top, gridTopPadding)
                     }
                 } else {
                     AspectVGrid(
                         items: cards,
-                        aspectRatio: 2.0 / 3.0,
+                        aspectRatio: aspect,
                         containerSize: proxy.size,
-                        fitAll: true
+                        fitAll: true,
+                        cellPaddingY: perCellPadding,  // ← match the actual per-cell padding
+                        outerTopPadding: gridTopPadding  // ← match the actual top padding
                     ) { card in
                         CardView(
                             card: card,
@@ -62,9 +69,9 @@ struct CardsGrid: View {
                         )
                         .onTapGesture { onTap(card) }
                         .allowsHitTesting(isTapEnabled)
-                        .padding(6)
+                        .padding(perCellPadding)
                     }
-                    .padding(.top, 8)
+                    .padding(.top, gridTopPadding)
                 }
             }
         }
@@ -74,18 +81,27 @@ struct CardsGrid: View {
     private func widthThatFitsAll(
         itemCount: Int,
         in size: CGSize,
-        itemAspectRatio: CGFloat
+        itemAspectRatio: CGFloat,
+        cellPaddingY: CGFloat,
+        outerTopPadding: CGFloat
     ) -> CGFloat {
         guard itemCount > 0 else { return size.width }
-        var columns = 1
-        var rows = itemCount
-        repeat {
-            let w = size.width / CGFloat(columns)
-            let h = w / itemAspectRatio
-            if CGFloat(rows) * h <= size.height { return w }
-            columns += 1
-            rows = (itemCount + columns - 1) / columns
-        } while columns < itemCount
-        return size.width / CGFloat(columns)
+        let heightAvail = max(0, size.height - outerTopPadding)
+
+        var best: CGFloat = 0
+        for columns in 1...itemCount {
+            let rows = Int(ceil(Double(itemCount) / Double(columns)))
+
+            let maxByWidth = size.width / CGFloat(columns)
+            let perRowAvail = heightAvail / CGFloat(rows)
+            let maxByHeight = max(
+                0,
+                (perRowAvail - 2 * cellPaddingY) * itemAspectRatio
+            )
+
+            let candidate = min(maxByWidth, maxByHeight)
+            if candidate > best { best = candidate }
+        }
+        return best
     }
 }
