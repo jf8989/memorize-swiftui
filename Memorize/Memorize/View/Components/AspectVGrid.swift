@@ -54,7 +54,7 @@ where ItemView: View, Item: Identifiable {
     // MARK: - Private
 
     private func adaptiveGridItem(width: CGFloat) -> GridItem {
-        var gridItem = GridItem(.adaptive(minimum: width))
+        var gridItem = GridItem(.adaptive(minimum: width, maximum: width))  // cap width
         gridItem.spacing = 0
         return gridItem
     }

@@ -33,7 +33,10 @@ struct CardsGrid: View {
                         LazyVGrid(
                             columns: [
                                 GridItem(
-                                    .adaptive(minimum: minCellWidth),
+                                    .adaptive(
+                                        minimum: minCellWidth,
+                                        maximum: minCellWidth
+                                    ),
                                     spacing: 0
                                 )
                             ],

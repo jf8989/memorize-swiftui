@@ -28,14 +28,14 @@ struct MemorizeGameView: View {
                 onTap: { viewModel.choose($0) }
             )
             .frame(maxHeight: .infinity)
-
-            NewGameButton(action: viewModel.newGame)
-                .padding(.horizontal)
-                .padding(.vertical, 12)
+            .safeAreaInset(edge: .bottom) {
+                NewGameButton(action: viewModel.newGame)
+                    .padding(.horizontal)
+                    .padding(.vertical, 12)
+            }
+            .navigationTitle(viewModel.themeName)
+            .navigationBarTitleDisplayMode(.inline)
         }
-        .padding(.horizontal)
-        .navigationTitle(viewModel.themeName)
-        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
@@ -43,7 +43,7 @@ struct MemorizeGameView: View {
     let demo = Theme(
         name: "Demo",
         emojis: Array("😀🐶🍕⚽🏀🎧").map { String($0) },
-        pairs: 2,
+        pairs: 3,
         rgba: .gray
     )
     return MemorizeGameView(viewModel: MemorizeGameViewModel(theme: demo))
