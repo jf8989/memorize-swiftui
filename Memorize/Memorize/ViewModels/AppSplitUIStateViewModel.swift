@@ -1,10 +1,10 @@
-//  ViewModel/AppSplitUIState.swift
+//  ViewModel/AppSplitUIStateViewModel.swift
 
 import SwiftUI
 
 /// UI-only state for AppSplitView (transient; no domain logic).
 @MainActor
-final class AppSplitUIState: ObservableObject {
+final class AppSplitUIStateViewModel: ObservableObject {
     // MARK: - Selection
     @Published var selection: UUID?
 

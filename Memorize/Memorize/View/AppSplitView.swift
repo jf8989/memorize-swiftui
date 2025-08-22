@@ -16,7 +16,7 @@ struct AppSplitView: View {
         .automatic
 
     // MARK: - UI-only state
-    @StateObject private var uiState = AppSplitUIState()
+    @StateObject private var uiState = AppSplitUIStateViewModel()
 
     // MARK: - Cache (preserves game state per theme)
     @StateObject private var cache = GameVMCache()
