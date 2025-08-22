@@ -2,52 +2,42 @@
 
 import SwiftUI
 
-/// Persists NavigationSplitView visibility across rotations/app launches.
+/// Persists NavigationSplitView visibility per size class (compact vs regular).
 @MainActor
 final class SplitVisibilityViewModel: ObservableObject {
-    @Published var liveVisibility: NavigationSplitViewVisibility {
-        didSet { persistGuarded(liveVisibility) }
-    }
+    // Live value bound to the SplitView (do NOT auto‑persist in didSet).
+    @Published var liveVisibility: NavigationSplitViewVisibility
 
+    // MARK: - Persistence
     private let defaults: UserDefaults
     private let keyCompact = "ui.splitVisibility.compact"
     private let keyRegular = "ui.splitVisibility.regular"
-    private var currentSizeKey: String = "regular"
-    private var suppressPersistence = false
-    private var lastSizeClassChangeAt: Date?
+    private var currentSizeKey: String = "regular"  // tracks active bucket
 
+    // MARK: - Init
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        self.liveVisibility = .all
-        print("SplitVM init")  // ← debug
+        self.liveVisibility = .all  // temporary; real value set by applySizeClass(_:)
     }
-    deinit { print("SplitVM deinit") }  // ← debug
 
+    // MARK: - Public
+    /// Call on appear and whenever horizontal size class changes.
     func applySizeClass(_ size: UserInterfaceSizeClass?) {
         currentSizeKey = (size == .compact) ? "compact" : "regular"
-        lastSizeClassChangeAt = Date()
         let stored = defaults.string(forKey: currentSizeKey)
-        let target =
+        liveVisibility =
             Self.decode(stored)
             ?? ((currentSizeKey == "compact") ? .automatic : .all)
-        suppressPersistence = true
-        liveVisibility = target
-        suppressPersistence = false
+        // Note: we don't persist here; only user‑driven changes are saved.
     }
 
-    private func persistGuarded(_ v: NavigationSplitViewVisibility) {
-        if suppressPersistence { return }
-        if let t = lastSizeClassChangeAt, Date().timeIntervalSince(t) < 0.5 {
-            return
-        }
-        defaults.set(
-            Self.encode(v),
-            forKey: (currentSizeKey == "compact") ? keyCompact : keyRegular
-        )
-        print("SplitVM persisted \(v) for \(currentSizeKey)")  // ← debug
+    /// Persist current liveVisibility into the active size‑class bucket.
+    func persistCurrent() {
+        let key = (currentSizeKey == "compact") ? keyCompact : keyRegular
+        defaults.set(Self.encode(liveVisibility), forKey: key)
     }
 
-    // MARK: - Codec (unchanged)
+    // MARK: - Codec
     private static func encode(_ v: NavigationSplitViewVisibility) -> String {
         switch v {
         case .all: return "all"
@@ -56,6 +46,7 @@ final class SplitVisibilityViewModel: ObservableObject {
         default: return "automatic"
         }
     }
+
     private static func decode(_ raw: String?) -> NavigationSplitViewVisibility?
     {
         switch raw {

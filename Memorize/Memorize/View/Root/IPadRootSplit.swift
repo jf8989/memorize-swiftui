@@ -2,15 +2,15 @@
 
 import SwiftUI
 
-/// Split navigator with persisted sidebar visibility, edit/delete, and VM caching.
+/// Split navigator (used on iPhone & iPad) with per‑size‑class sidebar persistence.
 struct IPadRootSplit: View {
+    // MARK: - Environment
     @EnvironmentObject private var store: ThemeStore
-
     @Environment(\.horizontalSizeClass) private var hSize
-    // @Environment(\.verticalSizeClass) private var vSize   // ← remove if unused
+    // If unused, keep vSize out to avoid warnings.
 
-    // MARK: - Injected split VM (no @StateObject here)
-    @ObservedObject var splitVM: SplitVisibilityViewModel  // ← injected
+    // MARK: - Injected Split Visibility VM
+    @ObservedObject var splitVM: SplitVisibilityViewModel
 
     // MARK: - Cache / Selection / Editor
     @StateObject private var cache = GameVMCache()
@@ -20,11 +20,26 @@ struct IPadRootSplit: View {
     @State private var showDeleteConfirm = false
     @State private var pendingSelectAfterEdit: UUID?
 
+    // MARK: - System write gating
+    @State private var isApplyingSizeClass = false
+
+    // MARK: - Filtered binding (blocks system write‑backs during applySizeClass)
+    private var filteredVisibility: Binding<NavigationSplitViewVisibility> {
+        Binding(
+            get: { splitVM.liveVisibility },
+            set: { newValue in
+                if isApplyingSizeClass { return }  // ignore system flips during apply
+                splitVM.liveVisibility = newValue  // user change → accept
+            }
+        )
+    }
+
+    // MARK: - Body
     var body: some View {
         let _ = Self._printChanges()
 
         Group {
-            NavigationSplitView(columnVisibility: $splitVM.liveVisibility) {
+            NavigationSplitView(columnVisibility: filteredVisibility) {
                 List(store.themes, selection: $selection) { theme in
                     ThemeRowView(theme: theme)
                         .tag(theme.id)
@@ -42,7 +57,7 @@ struct IPadRootSplit: View {
                 }
                 .navigationTitle("Themes")
                 .toolbar {
-                    if hSize == .compact {
+                    if hSize == .compact {  // iPhone only
                         ToolbarItem(placement: .cancellationAction) {
                             EditButton()
                         }
@@ -79,23 +94,35 @@ struct IPadRootSplit: View {
                 presenting: pendingDelete,
                 message:
                     "This will remove the theme and its settings permanently.",
-                confirmTitle: { "Delete “\($0.name)”" },
+                confirmTitle: { theme in "Delete “\(theme.name)”" },
                 confirmRole: .destructive
-            ) { delete(theme: $0) }
+            ) { theme in
+                delete(theme: theme)
+            }
             .task {
                 if store.themes.isEmpty {
                     store.seedIfEmpty(from: EmojiThemeModel.themes)
                 }
             }
         }
-        .onAppear { splitVM.applySizeClass(hSize) }
-        .onChange(of: hSize) { oldSize, newSize in
+        // Lifecycle – set the per‑size‑class value, while gating system write‑backs
+        .onAppear {
+            isApplyingSizeClass = true
+            splitVM.applySizeClass(hSize)
+            DispatchQueue.main.async { isApplyingSizeClass = false }
+        }
+        .onChange(of: hSize) { _, newSize in
+            isApplyingSizeClass = true
             splitVM.applySizeClass(newSize)
+            DispatchQueue.main.async { isApplyingSizeClass = false }
+        }
+        // Persist only real user changes (not our own programmatic apply)
+        .onChange(of: splitVM.liveVisibility) { oldValue, newValue in
+            if !isApplyingSizeClass { splitVM.persistCurrent() }
         }
     }
 
     // MARK: - Intents
-
     private func addNewTheme() {
         let name = NameUniquifier.unique(
             base: "New Theme",
