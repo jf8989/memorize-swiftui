@@ -32,7 +32,7 @@ struct AppSplitView: View {
                 onDeleteOffsets: { viewModel.delete(at: $0) }
             )
         } detail: {
-            GameDetail(
+            GameHostView(
                 themes: store.themes,
                 selection: viewModel.selection,
                 cache: viewModel.cache
