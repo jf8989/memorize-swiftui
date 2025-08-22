@@ -1,12 +1,11 @@
-//  View/AppSplitView.swift
+//  View/Root/AppSplitView.swift
 
 import SwiftUI
 
 /// Unified split root for iPhone & iPad.
-/// - Sidebar is the theme list (with Edit, Add, Delete).
-/// - Detail shows the game for the selected theme.
-/// - Sidebar visibility preference is kept per size class (compact vs regular),
-///   and re-applied after rotations/resizes so the system doesn't override it.
+/// - Sidebar: themes with Edit / Add / Delete.
+/// - Detail: game for selected theme.
+/// - Sidebar visibility preference is kept per size class and re-applied after width changes.
 struct AppSplitView: View {
     // MARK: - Environment
     @EnvironmentObject private var store: ThemeStore
@@ -30,7 +29,6 @@ struct AppSplitView: View {
 
     // MARK: - Rotation/resize tracking
     @State private var measuredWidth: CGFloat = 0
-    @State private var lastWidthChangeAt: Date? = nil
 
     // MARK: - Body
     var body: some View {
@@ -39,22 +37,19 @@ struct AppSplitView: View {
         } detail: {
             detail
         }
-        // Keep default style (dropping `.balanced` reduces "force show both columns" bias)
+        // Default style; avoids nudging to show both columns.
         .overlay(widthProbe)
 
-        // Apply preference on first appear & size-class changes
-        .task { applyFromStorage(reason: "onAppear") }
-        .onChange(of: hSize) { _, _ in
-            applyFromStorage(reason: "sizeClass change")
-        }
+        // Apply preference on first appear & size-class change.
+        .task { applyFromStorage() }
+        .onChange(of: hSize) { _, _ in applyFromStorage() }
 
-        // Persist only when outside the rotation/resize window (likely a user gesture)
+        // Persist only when likely user-driven (outside width-change handling).
         .onChange(of: columnVisibility) { _, newValue in
-            guard !isWithinWidthWindow else { return }
             persist(newValue, for: hSize)
         }
 
-        // Housekeeping (same UX you had before)
+        // Housekeeping
         .sheet(item: $editingTheme) { ThemeEditorView(theme: $0) }
         .onChange(of: editingTheme) { oldValue, newValue in
             if newValue == nil, let id = pendingSelectAfterEdit {
@@ -84,7 +79,7 @@ struct AppSplitView: View {
         List(selection: $selection) {
             ForEach(store.themes) { theme in
                 ThemeRowView(theme: theme)
-                    .tag(theme.id)  // needed for single-selection List
+                    .tag(theme.id)
                     .swipeActions(edge: .leading) {
                         Button("Edit") { editingTheme = theme }
                     }
@@ -97,10 +92,11 @@ struct AppSplitView: View {
                         }
                     }
             }
-            .onDelete(perform: delete(at:))  // ← attach to ForEach
+            .onDelete(perform: delete(at:))
         }
         .navigationTitle("Themes")
         .toolbar {
+            // Edit on both iPhone & iPad
             ToolbarItem(placement: .cancellationAction) { EditButton() }
             ToolbarItem(placement: .primaryAction) {
                 Button {
@@ -124,14 +120,7 @@ struct AppSplitView: View {
         }
     }
 
-    // MARK: - Rotation / resize handling
-    private var isWithinWidthWindow: Bool {
-        if let t = lastWidthChangeAt {
-            return Date().timeIntervalSince(t) < 0.40
-        }
-        return false
-    }
-
+    // MARK: - Width probe (re-apply stored preference after width changes)
     private var widthProbe: some View {
         GeometryReader { proxy in
             let w = proxy.size.width
@@ -140,8 +129,7 @@ struct AppSplitView: View {
         .onPreferenceChange(WidthKey.self) { newWidth in
             guard abs(newWidth - measuredWidth) > 0.5 else { return }
             measuredWidth = newWidth
-            lastWidthChangeAt = Date()
-            // Re-assert stored preference after the system finishes its own flip.
+            // Re-assert stored preference on next runloop.
             DispatchQueue.main.async {
                 reapplyStoredForCurrentSize()
             }
@@ -155,7 +143,7 @@ struct AppSplitView: View {
     }
 
     // MARK: - Apply / Persist helpers
-    private func applyFromStorage(reason: String) {
+    private func applyFromStorage() {
         columnVisibility =
             storedVisibility(for: hSize) ?? defaultVisibility(for: hSize)
     }
@@ -205,7 +193,7 @@ struct AppSplitView: View {
         }
     }
 
-    // MARK: - Intents (copied behavior from chooser + iPad specifics)
+    // MARK: - Intents
     private func addNewTheme() {
         let name = NameUniquifier.unique(
             base: "New Theme",
