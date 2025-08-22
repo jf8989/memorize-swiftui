@@ -3,13 +3,10 @@
 import SwiftUI
 
 /// Sidebar list with Edit / Add / Delete and swipe actions.
-/// Ownership of `ThemeStore` remains via EnvironmentObject.
-/// Selection is bound from the parent to keep split navigation stable.
+/// Data is passed in (no EnvironmentObject) to keep it reusable and testable.
 struct ThemeSidebarList: View {
-    // MARK: - Environment
-    @EnvironmentObject private var store: ThemeStore
-
     // MARK: - Inputs
+    let themes: [Theme]
     @Binding var selection: UUID?
     let onAddNew: () -> Void
     let onRequestEdit: (Theme) -> Void
@@ -18,7 +15,7 @@ struct ThemeSidebarList: View {
 
     var body: some View {
         List(selection: $selection) {
-            ForEach(store.themes) { theme in
+            ForEach(themes) { theme in
                 ThemeRowView(theme: theme)
                     .tag(theme.id)
                     .swipeActions(edge: .leading) {

@@ -15,29 +15,27 @@ struct AppSplitView: View {
     @State private var columnVisibility: NavigationSplitViewVisibility =
         .automatic
 
-    // MARK: - UI-only state
-    @StateObject private var uiState = AppSplitUIStateViewModel()
-
-    // MARK: - Cache (preserves game state per theme)
-    @StateObject private var cache = GameVMCache()
+    // MARK: - ViewModel (UI + intents) and cache owner
+    @StateObject private var vm = AppSplitViewModel()
 
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             ThemeSidebarList(
-                selection: $uiState.selection,
-                onAddNew: addNewTheme,
-                onRequestEdit: { uiState.editingTheme = $0 },
-                onRequestDelete: { theme in
-                    uiState.pendingDelete = theme
-                    uiState.showDeleteConfirm = true
+                themes: store.themes,
+                selection: $vm.selection,
+                onAddNew: { vm.addNewTheme() },
+                onRequestEdit: { vm.editingTheme = $0 },
+                onRequestDelete: {
+                    vm.pendingDelete = $0
+                    vm.showDeleteConfirm = true
                 },
-                onDeleteOffsets: delete(at:)
+                onDeleteOffsets: { vm.delete(at: $0) }
             )
         } detail: {
             GameDetail(
                 themes: store.themes,
-                selection: uiState.selection,
-                cache: cache
+                selection: vm.selection,
+                cache: vm.cache
             )
         }
         // Persist + re-assert visibility (unchanged behavior).
@@ -48,65 +46,26 @@ struct AppSplitView: View {
             )
         )
 
-        // Sheet / confirm dialog wired to UI state.
-        .sheet(item: $uiState.editingTheme) { ThemeEditorView(theme: $0) }
-        .onChange(of: uiState.editingTheme) { _, newValue in
-            if newValue == nil, let id = uiState.pendingSelectAfterEdit {
-                uiState.selection = id
-                uiState.pendingSelectAfterEdit = nil
+        // Sheet / confirm dialog wired to VM state.
+        .sheet(item: $vm.editingTheme) { ThemeEditorView(theme: $0) }
+        .onChange(of: vm.editingTheme) { _, newValue in
+            if newValue == nil, let id = vm.pendingSelectAfterEdit {
+                vm.selection = id
+                vm.pendingSelectAfterEdit = nil
             }
         }
         .confirmDialog(
             title: "Delete Theme?",
-            isPresented: $uiState.showDeleteConfirm,
-            presenting: uiState.pendingDelete,
+            isPresented: $vm.showDeleteConfirm,
+            presenting: vm.pendingDelete,
             message: "This will remove the theme and its settings permanently.",
             confirmTitle: { theme in "Delete “\(theme.name)”" },
             confirmRole: .destructive
         ) { theme in
-            delete(theme: theme)
+            vm.delete(theme: theme)
         }
         .task {
-            if store.themes.isEmpty {
-                store.seedIfEmpty(from: EmojiThemeModel.themes)
-            }
-        }
-    }
-
-    // MARK: - Intents
-
-    private func addNewTheme() {
-        let name = NameUniquifier.unique(
-            base: "New Theme",
-            existing: store.themes.map(\.name)
-        )
-        let newTheme = Theme(name: name, emojis: [], pairs: 2, rgba: .gray)
-        store.upsert(newTheme)
-        uiState.pendingSelectAfterEdit = newTheme.id
-        uiState.editingTheme = newTheme
-    }
-
-    private func delete(theme: Theme) {
-        withAnimation {
-            if uiState.editingTheme?.id == theme.id {
-                uiState.editingTheme = nil
-            }
-            if uiState.selection == theme.id { uiState.selection = nil }
-            cache.remove(for: theme.id)
-            store.delete(id: theme.id)
-            uiState.pendingDelete = nil
-        }
-    }
-
-    private func delete(at offsets: IndexSet) {
-        withAnimation {
-            let ids = offsets.map { store.themes[$0].id }
-            for id in ids {
-                if uiState.editingTheme?.id == id { uiState.editingTheme = nil }
-                if uiState.selection == id { uiState.selection = nil }
-                cache.remove(for: id)
-                store.delete(id: id)
-            }
+            vm.attach(store: store)  // inject ThemeStore once
         }
     }
 }
