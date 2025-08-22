@@ -1,10 +1,10 @@
-//  View/Components/GameDetail.swift
+//  View/Components/GameHostView.swift
 
 import SwiftUI
 
 /// Resolves the selected theme and shows the game or a placeholder.
 /// Uses a shared cache so switching themes preserves game state.
-struct GameDetail: View {
+struct GameHostView: View {
     let themes: [Theme]
     let selection: UUID?
     @ObservedObject var cache: GameVMCache
