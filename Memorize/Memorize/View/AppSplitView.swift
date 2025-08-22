@@ -16,26 +16,26 @@ struct AppSplitView: View {
         .automatic
 
     // MARK: - ViewModel (UI + intents) and cache owner
-    @StateObject private var vm = AppSplitViewModel()
+    @StateObject private var viewModel = AppSplitViewModel()
 
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             ThemeSidebarList(
                 themes: store.themes,
-                selection: $vm.selection,
-                onAddNew: { vm.addNewTheme() },
-                onRequestEdit: { vm.editingTheme = $0 },
+                selection: $viewModel.selection,
+                onAddNew: { viewModel.addNewTheme() },
+                onRequestEdit: { viewModel.editingTheme = $0 },
                 onRequestDelete: {
-                    vm.pendingDelete = $0
-                    vm.showDeleteConfirm = true
+                    viewModel.pendingDelete = $0
+                    viewModel.showDeleteConfirm = true
                 },
-                onDeleteOffsets: { vm.delete(at: $0) }
+                onDeleteOffsets: { viewModel.delete(at: $0) }
             )
         } detail: {
             GameDetail(
                 themes: store.themes,
-                selection: vm.selection,
-                cache: vm.cache
+                selection: viewModel.selection,
+                cache: viewModel.cache
             )
         }
         // Persist + re-assert visibility (unchanged behavior).
@@ -47,25 +47,25 @@ struct AppSplitView: View {
         )
 
         // Sheet / confirm dialog wired to VM state.
-        .sheet(item: $vm.editingTheme) { ThemeEditorView(theme: $0) }
-        .onChange(of: vm.editingTheme) { _, newValue in
-            if newValue == nil, let id = vm.pendingSelectAfterEdit {
-                vm.selection = id
-                vm.pendingSelectAfterEdit = nil
+        .sheet(item: $viewModel.editingTheme) { ThemeEditorView(theme: $0) }
+        .onChange(of: viewModel.editingTheme) { _, newValue in
+            if newValue == nil, let id = viewModel.pendingSelectAfterEdit {
+                viewModel.selection = id
+                viewModel.pendingSelectAfterEdit = nil
             }
         }
         .confirmDialog(
             title: "Delete Theme?",
-            isPresented: $vm.showDeleteConfirm,
-            presenting: vm.pendingDelete,
+            isPresented: $viewModel.showDeleteConfirm,
+            presenting: viewModel.pendingDelete,
             message: "This will remove the theme and its settings permanently.",
             confirmTitle: { theme in "Delete “\(theme.name)”" },
             confirmRole: .destructive
         ) { theme in
-            vm.delete(theme: theme)
+            viewModel.delete(theme: theme)
         }
         .task {
-            vm.attach(store: store)  // inject ThemeStore once
+            viewModel.attach(store: store)  // inject ThemeStore once
         }
     }
 }
