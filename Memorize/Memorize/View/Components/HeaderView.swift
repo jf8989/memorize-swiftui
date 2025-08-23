@@ -4,18 +4,23 @@ import SwiftUI
 
 /// Title + score/time header.
 struct HeaderView: View {
+    //MARK: - Input
     let isGameStarted: Bool
     let score: Int
     let timeRemaining: Int
     let themeName: String
     let themeColor: Color
+    var onTapTimer: (() -> Void)? = nil
 
+    //MARK: - Environment
     @Environment(\.colorScheme) private var colorScheme
 
+    //MARK: - Computed
     private var displayColor: Color {
         (themeColor == .black && colorScheme == .dark) ? .white : themeColor
     }
 
+    //MARK: - Body
     var body: some View {
         VStack(spacing: 8) {
             if isGameStarted {
@@ -29,6 +34,11 @@ struct HeaderView: View {
                         .font(.title2)
                         .fontWeight(.semibold)
                         .foregroundColor(timeRemaining < 10 ? .red : .blue)
+                        .contentShape(Rectangle())
+                        /// make the whole text tappable
+                        .onTapGesture { onTapTimer?() }
+                        /// open difficulty picker
+                        .accessibilityAddTraits(.isButton)
                 }
             }
             Text(themeName)

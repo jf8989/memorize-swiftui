@@ -6,56 +6,63 @@ import SwiftUI
 @MainActor
 final class MemorizeGameViewModel: ObservableObject {
 
-    // MARK: - Theme (fixed for session)
+    //MARK: - Theme (fixed for session)
     let theme: Theme
 
-    // MARK: - Cards & UI State
+    //MARK: - Cards & UI State
     @Published var cards: [Card] = []
     @Published var isTapEnabled: Bool = true
 
-    // MARK: - Timer & Scoring
+    //MARK: - Timer & Scoring
     @Published var timeRemaining: Int = 120
     @Published private(set) var score: Int = 0
 
-    // MARK: - Session State
+    //MARK: - Session State
     @Published var isGameStarted: Bool = false
     @Published var showScore: Bool = false
 
-    // MARK: - Private
+    //MARK: - Private
     private var gameRules = GameRules(cards: [])
     private var timer: Timer?
     private var gameStartTime: Date?
+    private var timeMode: GameTimeMode
 
-    // MARK: - Init
-    init(theme: Theme) {
+    //MARK: - Init
+    init(theme: Theme, timeMode: GameTimeMode = .medium) {
         self.theme = theme
-        newGame()  // start immediately with provided theme
+        self.timeMode = timeMode
+        newGame()
     }
 
     deinit { timer?.invalidate() }
 
-    // MARK: - Derived Theme UI
-
+    //MARK: - Derived Theme UI
     var themeName: String { theme.name }
     var themeColor: Color { Color(rgba: theme.rgba) }
-    var themeGradientColor: LinearGradient? { nil }  // gradients not in persisted model
+    var themeGradientColor: LinearGradient? { nil }
+    /// gradients not in persisted model
 
-    // MARK: - Intent
-
+    //MARK: - Intent
     /// Starts/restarts a game using this instance's theme (no random selection).
     func newGame() {
         timer?.invalidate()
         gameStartTime = Date()
-        timeRemaining = 120
         isTapEnabled = true
         isGameStarted = true
 
-        // Build deck from theme (pairs clamped by editor; still guard for safety).
+        /// Build deck from theme (pairs clamped by editor; still guard for safety).
         let pairs = max(2, min(theme.pairs, theme.emojis.count))
         let chosen = Array(theme.emojis.shuffled().prefix(pairs))
         let newCards = DeckFactory.makeDeck(from: chosen)
 
-        gameRules = GameRules(cards: newCards)
+        gameRules = GameRules(cards: newCards, timeMode: timeMode)
+
+        let rules = GameTimeRulesFactory.rules(for: timeMode)
+        timeRemaining = GameTimeCalculator.baseTime(
+            forPairs: pairs,
+            rules: rules
+        )
+
         gameRules.score = 0
         syncFromRules()
 
@@ -68,7 +75,9 @@ final class MemorizeGameViewModel: ObservableObject {
         syncFromRules()
 
         if gameRules.indicesOfFaceUpUnmatchedCards != nil {
-            timeRemaining = timeRemaining - 5
+            let penalty = GameTimeRulesFactory.rules(for: timeMode)
+                .mismatchPenaltySeconds
+            timeRemaining = max(0, timeRemaining - penalty)
             isTapEnabled = false
             Task { @MainActor in
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
@@ -89,8 +98,16 @@ final class MemorizeGameViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Timer
+    /// Allows changing difficulty at runtime. Persists globally and restarts the game.
+    func applyTimeMode(_ mode: GameTimeMode) {
+        AppSettingsStore.shared.timeMode = mode
+        /// persist globally
+        timeMode = mode
+        /// update local mode
+        newGame()
+    }
 
+    //MARK: - Timer
     private func startTimer() {
         timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) {
@@ -115,8 +132,7 @@ final class MemorizeGameViewModel: ObservableObject {
         isGameStarted = false
     }
 
-    // MARK: - Scoring Helpers
-
+    //MARK: - Scoring Helpers
     private func elapsedTimeSinceStart() -> Int {
         let now = Date()
         return Int(now.timeIntervalSince(gameStartTime ?? now))
@@ -130,15 +146,13 @@ final class MemorizeGameViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Sync
-
+    //MARK: - Sync
     private func syncFromRules() {
         cards = gameRules.cards
         score = gameRules.score
     }
 
-    // MARK: - Derived Flags
-
+    //MARK: - Derived Flags
     private var isGameOver: Bool {
         cards.allSatisfy { $0.isMatched }
     }

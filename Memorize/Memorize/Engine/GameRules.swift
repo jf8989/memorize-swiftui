@@ -7,14 +7,16 @@ struct GameRules {
     // MARK: - State
     private(set) var cards: [Card]
     var score: Int = 0
+    let timeMode: GameTimeMode  // data only; no time math here
 
     // MARK: - Tap Tracking
     private var tapCount: Int = 0
     private var tappedCardIndices: [Int] = []
 
     // MARK: - Init
-    init(cards: [Card]) {
+    init(cards: [Card], timeMode: GameTimeMode = .medium) {
         self.cards = cards
+        self.timeMode = timeMode
     }
 
     // MARK: - Derived
