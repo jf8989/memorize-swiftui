@@ -35,6 +35,7 @@ struct AppSplitView: View {
             GameHostView(
                 themes: store.themes,
                 selection: viewModel.selection,
+                onOpenSidebar: { columnVisibility = .all },
                 cache: viewModel.cache
             )
         }

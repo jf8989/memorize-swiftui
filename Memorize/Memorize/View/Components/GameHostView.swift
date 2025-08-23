@@ -8,6 +8,7 @@ struct GameHostView: View {
     //MARK: - Input
     let themes: [Theme]
     let selection: UUID?
+    let onOpenSidebar: () -> Void
 
     //MARK: - Dependencies
     @ObservedObject var cache: GameVMCache
@@ -21,23 +22,10 @@ struct GameHostView: View {
                 viewModel: cache.vm(for: theme, timeMode: settings.timeMode)
             )
         } else {
-            ContentPlaceholder()
+            GameInstructionsView(
+                difficulty: settings.timeMode,
+                onOpenSidebar: onOpenSidebar
+            )
         }
-    }
-}
-
-//MARK: - Placeholder
-private struct ContentPlaceholder: View {
-    var body: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "gamecontroller")
-                .font(.system(size: 44))
-                .foregroundStyle(.secondary)
-            Text("Select a Theme")
-                .font(.headline)
-                .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(.systemBackground))
     }
 }
