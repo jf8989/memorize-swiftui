@@ -7,7 +7,7 @@ import SwiftUI
 final class MemorizeGameViewModel: ObservableObject {
 
     //MARK: - Theme (fixed for session)
-    let theme: Theme
+    private(set) var theme: Theme
 
     //MARK: - Cards & UI State
     @Published var cards: [Card] = []
@@ -112,6 +112,16 @@ final class MemorizeGameViewModel: ObservableObject {
         timeMode = mode
         /// update local mode
         newGame()
+    }
+
+    /// Apply an edited Theme for the same id and restart the game if content changed.
+    func applyEditedTheme(_ edited: Theme) {
+        guard edited.id == theme.id else { return }
+        // Only restart if something actually changed
+        if edited != theme {
+            theme = edited
+            newGame()
+        }
     }
 
     //MARK: - Timer

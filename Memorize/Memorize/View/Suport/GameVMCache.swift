@@ -15,6 +15,22 @@ final class GameVMCache: ObservableObject {
         return fresh
     }
 
+    /// Ensure the cached VM reflects the latest Theme and difficulty.
+    @discardableResult
+    func reconfigure(for theme: Theme, timeMode: GameTimeMode)
+        -> MemorizeGameViewModel
+    {
+        if let existing = storage[theme.id] {
+            if existing.difficulty != timeMode {
+                existing.applyTimeMode(timeMode)
+            }
+            existing.applyEditedTheme(theme)
+            return existing
+        } else {
+            return vm(for: theme, timeMode: timeMode)
+        }
+    }
+
     func remove(for id: UUID) {
         storage[id] = nil
     }

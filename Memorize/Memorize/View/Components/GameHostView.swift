@@ -17,11 +17,23 @@ struct GameHostView: View {
 
     // MARK: - Body
     var body: some View {
-        if let id = selection, let theme = themes.first(where: { $0.id == id })
+        if let id = selection,
+            let theme = themes.first(where: { $0.id == id })
         {
-            MemorizeGameView(
-                viewModel: cache.vm(for: theme, timeMode: settings.timeMode)
-            )
+            let vm = cache.reconfigure(for: theme, timeMode: settings.timeMode)
+
+            MemorizeGameView(viewModel: vm)
+                // iOS 17+: use two-parameter onChange
+                .onChange(of: theme) { _, newTheme in
+                    _ = cache.reconfigure(
+                        for: newTheme,
+                        timeMode: settings.timeMode
+                    )
+                }
+                .onChange(of: settings.timeMode) { _, newMode in
+                    vm.applyTimeMode(newMode)
+                }
+
         } else {
             GameInstructionsView(
                 difficulty: settings.timeMode,
