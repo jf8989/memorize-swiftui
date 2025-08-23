@@ -41,7 +41,7 @@ final class MemorizeGameViewModel: ObservableObject {
     var themeColor: Color { Color(rgba: theme.rgba) }
     var themeGradientColor: LinearGradient? { nil }
     /// gradients not in persisted model
-    var difficulty: GameTimeMode { timeMode } 
+    var difficulty: GameTimeMode { timeMode }
 
     //MARK: - Intent
     /// Starts/restarts a game using this instance's theme (no random selection).
@@ -76,12 +76,16 @@ final class MemorizeGameViewModel: ObservableObject {
         syncFromRules()
 
         if gameRules.indicesOfFaceUpUnmatchedCards != nil {
+            // 🔊 mismatch sound
+            SoundEffects.shared.play(.mismatch)
+
             let penalty = GameTimeRulesFactory.rules(for: timeMode)
                 .mismatchPenaltySeconds
             timeRemaining = max(0, timeRemaining - penalty)
             isTapEnabled = false
             Task { @MainActor in
-                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                // ⏱ half the delay: 0.5s
+                try? await Task.sleep(nanoseconds: 500_000_000)
                 self.gameRules.flipBackUnmatchedCards()
                 self.syncFromRules()
                 if self.timeRemaining > 0 && !self.isGameOver {
@@ -89,6 +93,9 @@ final class MemorizeGameViewModel: ObservableObject {
                 }
             }
         } else if gameRules.isThisAmatch {
+            // 🔊 match sound
+            SoundEffects.shared.play(.match)
+
             let elapsed = elapsedTimeSinceStart()
             let points = pointsForElapsedTime(elapsed)
             gameRules.score = gameRules.score + points
