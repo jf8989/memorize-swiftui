@@ -102,17 +102,17 @@ struct GameInstructionsView: View {
                         RuleRow(
                             icon: "checkmark.circle.fill",
                             text:
-                                "Easy — 10s per pair, −1s per mismatch (most forgiving)."
+                                "Easy — 12s per pair, −1s per mismatch (most forgiving)."
                         )
                         RuleRow(
                             icon: "checkmark.circle.fill",
                             text:
-                                "Medium — 8s per pair, −3s per mismatch (balanced)."
+                                "Medium — 10s per pair, −3s per mismatch (balanced)."
                         )
                         RuleRow(
                             icon: "checkmark.circle.fill",
                             text:
-                                "Hard — 6s per pair, −5s per mismatch (tight window)."
+                                "Hard — 8s per pair, −5s per mismatch (tight window)."
                         )
                     }
 

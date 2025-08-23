@@ -14,9 +14,9 @@ struct GameTimeRules: Codable, Equatable {
 enum GameTimeRulesFactory {
     static func rules(for mode: GameTimeMode) -> GameTimeRules {
         switch mode {
-        case .easy: return .init(perPairSeconds: 10, mismatchPenaltySeconds: 1)
-        case .medium: return .init(perPairSeconds: 9, mismatchPenaltySeconds: 3)
-        case .hard: return .init(perPairSeconds: 7, mismatchPenaltySeconds: 5)
+        case .easy: return .init(perPairSeconds: 12, mismatchPenaltySeconds: 1)
+        case .medium: return .init(perPairSeconds: 10, mismatchPenaltySeconds: 3)
+        case .hard: return .init(perPairSeconds: 8, mismatchPenaltySeconds: 5)
         }
     }
 }

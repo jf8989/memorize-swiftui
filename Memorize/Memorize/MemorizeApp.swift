@@ -6,7 +6,6 @@ import SwiftUI
 struct MemorizeApp: App {
     // MARK: - Stores
     @StateObject private var store = ThemeStore()
-    @StateObject private var settings = AppSettingsStore.shared
 
     // MARK: - Launch SFX gate
     @Environment(\.scenePhase) private var scenePhase
@@ -16,7 +15,7 @@ struct MemorizeApp: App {
         WindowGroup {
             AppSplitView()
                 .environmentObject(store)
-                .environmentObject(settings)
+                .environmentObject(AppSettingsStore.shared)
         }
         .onChange(of: scenePhase) { _, phase in
             // Play exactly once when app first becomes active

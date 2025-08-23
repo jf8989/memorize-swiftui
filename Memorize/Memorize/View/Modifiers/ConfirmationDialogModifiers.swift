@@ -34,35 +34,6 @@ struct ConfirmDialogModifier<Item>: ViewModifier {
     }
 }
 
-extension View {
-    /// Confirm dialog tied to an optional item.
-    /// - Parameters match SwiftUI's `confirmationDialog` plus a typed confirm.
-    func confirmDialog<Item>(
-        title: String,
-        isPresented: Binding<Bool>,
-        presenting: Item?,
-        message: String? = nil,
-        confirmTitle: @escaping (Item) -> String = { _ in "Confirm" },
-        confirmRole: ButtonRole = .destructive,
-        cancelTitle: String = "Cancel",
-        onConfirm: @escaping (Item) -> Void
-    ) -> some View {
-        modifier(
-            ConfirmDialogModifier(
-                title: title,
-                isPresented: isPresented.wrappedValue == true
-                    ? isPresented : isPresented,  // keeps binding as-is
-                presenting: presenting,
-                message: message,
-                confirmTitle: confirmTitle,
-                confirmRole: confirmRole,
-                cancelTitle: cancelTitle,
-                onConfirm: onConfirm
-            )
-        )
-    }
-}
-
 // MARK: - Simple (no-item) variant
 
 /// Confirmation dialog without a presented item.
