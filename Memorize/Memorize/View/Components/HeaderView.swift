@@ -11,6 +11,7 @@ struct HeaderView: View {
     let themeName: String
     let themeColor: Color
     var onTapTimer: (() -> Void)? = nil
+    var difficulty: GameTimeMode? = nil
 
     //MARK: - Environment
     @Environment(\.colorScheme) private var colorScheme
@@ -24,21 +25,24 @@ struct HeaderView: View {
     var body: some View {
         VStack(spacing: 8) {
             if isGameStarted {
-                HStack {
+                HStack(spacing: 8) {
                     Text("Score: \(score)")
                         .font(.title2)
                         .fontWeight(.semibold)
                         .foregroundColor(score >= 0 ? .blue : .red)
                     Spacer()
-                    Text("Timer: \(timeRemaining)")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .foregroundColor(timeRemaining < 10 ? .red : .blue)
-                        .contentShape(Rectangle())
-                        /// make the whole text tappable
-                        .onTapGesture { onTapTimer?() }
-                        /// open difficulty picker
-                        .accessibilityAddTraits(.isButton)
+                    HStack(spacing: 6) {
+                        Text("Timer: \(timeRemaining)")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .foregroundColor(timeRemaining < 10 ? .red : .blue)
+                            .contentShape(Rectangle())
+                            .onTapGesture { onTapTimer?() }
+                            .accessibilityAddTraits(.isButton)
+                        if let difficulty {
+                            DifficultyBadge(mode: difficulty)
+                        }
+                    }
                 }
             }
             Text(themeName)
@@ -63,5 +67,26 @@ struct HeaderView: View {
                     value: themeName
                 )
         }
+    }
+}
+
+//MARK: - Badge
+private struct DifficultyBadge: View {
+    let mode: GameTimeMode
+    var body: some View {
+        let (label, color): (String, Color) = {
+            switch mode {
+            case .easy: return ("Easy", .green)
+            case .medium: return ("Med", .orange)
+            case .hard: return ("Hard", .red)
+            }
+        }()
+        Text(label)
+            .font(.caption2).bold()
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .foregroundStyle(color)
+            .background(Capsule().fill(color.opacity(0.12)))
+            .overlay(Capsule().stroke(color.opacity(0.6), lineWidth: 1))
     }
 }

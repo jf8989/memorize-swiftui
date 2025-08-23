@@ -24,7 +24,8 @@ struct MemorizeGameView: View {
                 timeRemaining: viewModel.timeRemaining,
                 themeName: viewModel.themeName,
                 themeColor: viewModel.themeColor,
-                onTapTimer: { showDifficultyPicker = true }
+                onTapTimer: { showDifficultyPicker = true },
+                difficulty: viewModel.difficulty
             )
 
             // Let the grid take all remaining space between header and button.
@@ -45,7 +46,7 @@ struct MemorizeGameView: View {
         }
         .navigationTitle(viewModel.themeName)
         .navigationBarTitleDisplayMode(.inline)
-        // ⬇️ iPad = alert, iPhone = confirmationDialog
+        // iPad = alert, iPhone = confirmationDialog
         .difficultyPicker(isPresented: $showDifficultyPicker) { mode in
             viewModel.applyTimeMode(mode)
         }

@@ -41,6 +41,7 @@ final class MemorizeGameViewModel: ObservableObject {
     var themeColor: Color { Color(rgba: theme.rgba) }
     var themeGradientColor: LinearGradient? { nil }
     /// gradients not in persisted model
+    var difficulty: GameTimeMode { timeMode } 
 
     //MARK: - Intent
     /// Starts/restarts a game using this instance's theme (no random selection).
