@@ -14,6 +14,8 @@ final class SoundEffects {
     // One reusable player per URL (reduces churn & “overload” logs)
     private var players: [URL: AVAudioPlayer] = [:]
 
+    private var lastURLForEffect: [Effect: URL] = [:]
+
     private init() {
         setupAudioSession()
         bank[.match] = discover(prefix: "sfx_match")
@@ -104,7 +106,14 @@ final class SoundEffects {
 
     private func chooseURL(for effect: Effect) -> URL? {
         guard let files = bank[effect], !files.isEmpty else { return nil }
-        if effect == .mismatch { return files.randomElement() }
-        return files.first
+        if files.count == 1 { return files[0] }
+
+        var candidates = files
+        if let last = lastURLForEffect[effect] {
+            candidates.removeAll { $0 == last }
+        }
+        let url = candidates.randomElement()!
+        lastURLForEffect[effect] = url
+        return url
     }
 }
