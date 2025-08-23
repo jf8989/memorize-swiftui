@@ -4,18 +4,20 @@ import SwiftUI
 
 /// Cards grid that fits all when possible; otherwise switches to scroll with a minimum cell size.
 struct CardsGrid: View {
+    // MARK: - Inputs
     let cards: [Card]
     let themeColor: Color
     let themeGradient: LinearGradient?
     let isTapEnabled: Bool
     let onTap: (Card) -> Void
 
-    // keep these in one place so math == layout
+    // MARK: - Layout constants (keep math == layout)
     private let perCellPadding: CGFloat = 6
     private let gridTopPadding: CGFloat = 8
     private let aspect: CGFloat = 2.0 / 3.0
     private let minCellWidth: CGFloat = 70
 
+    // MARK: - Body
     var body: some View {
         GeometryReader { proxy in
             let computed = widthThatFitsAll(
@@ -62,8 +64,8 @@ struct CardsGrid: View {
                         aspectRatio: aspect,
                         containerSize: proxy.size,
                         fitAll: true,
-                        cellPaddingY: perCellPadding,  // ← match the actual per-cell padding
-                        outerTopPadding: gridTopPadding  // ← match the actual top padding
+                        cellPaddingY: perCellPadding,
+                        outerTopPadding: gridTopPadding
                     ) { card in
                         CardView(
                             card: card,
@@ -94,14 +96,12 @@ struct CardsGrid: View {
         var best: CGFloat = 0
         for columns in 1...itemCount {
             let rows = Int(ceil(Double(itemCount) / Double(columns)))
-
             let maxByWidth = size.width / CGFloat(columns)
             let perRowAvail = heightAvail / CGFloat(rows)
             let maxByHeight = max(
                 0,
                 (perRowAvail - 2 * cellPaddingY) * itemAspectRatio
             )
-
             let candidate = min(maxByWidth, maxByHeight)
             if candidate > best { best = candidate }
         }

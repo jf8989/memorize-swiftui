@@ -6,12 +6,13 @@ import SwiftUI
 /// inside `containerSize` (no scroll). It increases column count until the total height fits.
 struct AspectVGrid<Item, ItemView>: View
 where ItemView: View, Item: Identifiable {
+    // MARK: - Inputs
     let items: [Item]
     let aspectRatio: CGFloat
     let containerSize: CGSize
     let fitAll: Bool
-    let cellPaddingY: CGFloat  // Vertical padding per cell (top+bottom inside each cell)
-    let outerTopPadding: CGFloat  // Extra top padding applied to the grid
+    let cellPaddingY: CGFloat  // vertical padding inside each cell (top+bottom)
+    let outerTopPadding: CGFloat  // extra top padding applied to the grid
     let content: (Item) -> ItemView
 
     // MARK: - Init
@@ -20,8 +21,8 @@ where ItemView: View, Item: Identifiable {
         aspectRatio: CGFloat,
         containerSize: CGSize,
         fitAll: Bool = true,
-        cellPaddingY: CGFloat = 0,  // ← default keeps old call sites working
-        outerTopPadding: CGFloat = 0,  // ← default keeps old call sites working
+        cellPaddingY: CGFloat = 0,
+        outerTopPadding: CGFloat = 0,
         @ViewBuilder content: @escaping (Item) -> ItemView
     ) {
         self.items = items
@@ -73,7 +74,6 @@ where ItemView: View, Item: Identifiable {
         var best: CGFloat = 0
         for columns in 1...itemCount {
             let rows = Int(ceil(Double(itemCount) / Double(columns)))
-
             let maxByWidth = size.width / CGFloat(columns)
             let perRowAvail = heightAvail / CGFloat(rows)
             // rows * (w/aspect + 2*pad) <= heightAvail  ⇒  w <= (perRowAvail - 2*pad) * aspect
@@ -81,7 +81,6 @@ where ItemView: View, Item: Identifiable {
                 0,
                 (perRowAvail - 2 * cellPaddingY) * itemAspectRatio
             )
-
             let candidate = min(maxByWidth, maxByHeight)
             if candidate > best { best = candidate }
         }
