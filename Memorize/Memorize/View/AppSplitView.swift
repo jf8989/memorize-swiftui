@@ -18,6 +18,7 @@ struct AppSplitView: View {
     // MARK: - ViewModel (UI + intents) and cache owner
     @StateObject private var viewModel = AppSplitViewModel()
 
+    // MARK: - Body
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             ThemeSidebarList(
@@ -35,7 +36,8 @@ struct AppSplitView: View {
             GameHostView(
                 themes: store.themes,
                 selection: viewModel.selection,
-                onOpenSidebar: { columnVisibility = .all },
+                isSidebarVisible: sidebarIsOpen(columnVisibility, hSize: hSize),
+                onToggleSidebar: { toggleSidebar() },
                 cache: viewModel.cache
             )
         }
@@ -67,6 +69,27 @@ struct AppSplitView: View {
         }
         .task {
             viewModel.attach(store: store)  // inject ThemeStore once
+        }
+    }
+
+    // MARK: - Helpers
+    /// Sidebar is considered open on regular width when not in .detailOnly.
+    private func sidebarIsOpen(
+        _ v: NavigationSplitViewVisibility,
+        hSize: UserInterfaceSizeClass?
+    ) -> Bool {
+        guard hSize == .regular else { return false }
+        return v != .detailOnly
+    }
+
+    /// Toggle open/close for the sidebar on iPad-style width.
+    private func toggleSidebar() {
+        guard hSize == .regular else { return }  // no-op on iPhone (no persistent sidebar)
+        switch columnVisibility {
+        case .detailOnly: columnVisibility = .all
+        case .all: columnVisibility = .detailOnly
+        case .doubleColumn: columnVisibility = .detailOnly
+        default: columnVisibility = .all
         }
     }
 }
