@@ -13,7 +13,6 @@ struct EmojiThemeModel: Identifiable {
 
     /// Built-in themes used by the current implementation.
     static let themes: [EmojiThemeModel] = [
-        // Existing
         EmojiThemeModel(
             name: "Halloween",
             emojis: halloweenEmojis,

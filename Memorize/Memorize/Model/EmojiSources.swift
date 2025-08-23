@@ -1,9 +1,7 @@
 //  Model/EmojiSources.swift
-//  (moved all emoji arrays out of EmojiThemeModel.swift)
 
 import Foundation
 
-// Existing sources
 let halloweenEmojis = [
     "👻", "🎃", "🕷️", "💀", "🧟‍♂️", "🦇", "🧙‍♀️", "🍬", "🍭", "🪦", "🧛‍♂️", "🧞‍♂️", "☠️", "🧹", "🕸️",
 ]

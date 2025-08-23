@@ -6,22 +6,46 @@ import Foundation
 @MainActor
 final class ThemeStore: ObservableObject, ThemeStoreProtocol {
 
+    // MARK: - Errors
+
+    enum ThemeStoreError: LocalizedError, Equatable {
+        case encodeFailed(underlying: String)
+        case decodeFailed(underlying: String)
+        case persistenceFailed(description: String)
+
+        var errorDescription: String? {
+            switch self {
+            case .encodeFailed(let u): return "Failed to encode themes. \(u)"
+            case .decodeFailed(let u): return "Failed to decode themes. \(u)"
+            case .persistenceFailed(let d): return d
+            }
+        }
+    }
+
+    /// Most recent error (nil when clear). Useful for showing a toast/banner in UI.
+    @Published private(set) var lastError: ThemeStoreError?
+
     // MARK: - Singleton
+
     static let shared = ThemeStore()
 
     // MARK: - Keys
+
     private let themesKey = "com.ravn.memorize.themeStore.themes.v1"
     private let seededKey = "com.ravn.memorize.themeStore.seeded.v1"
 
     // MARK: - Published State
+
     @Published private(set) var themes: [Theme] = []
 
     // MARK: - Deps
+
     private let defaults: UserDefaults
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
 
     // MARK: - Init
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         self.themes = load()
@@ -70,21 +94,41 @@ final class ThemeStore: ObservableObject, ThemeStoreProtocol {
     // MARK: - Persistence
 
     private func load() -> [Theme] {
+        clearError()
         guard let data = defaults.data(forKey: themesKey) else { return [] }
         do {
             return try decoder.decode([Theme].self, from: data)
         } catch {
+            // Corrupted payload → wipe and report
             defaults.removeObject(forKey: themesKey)
+            report(.decodeFailed(underlying: String(describing: error)))
             return []
         }
     }
 
     private func save(_ themes: [Theme]) {
+        clearError()
         do {
             let data = try encoder.encode(themes)
             defaults.set(data, forKey: themesKey)
         } catch {
-            // Silent for now; errors will be surfaced by editor UI later.
+            report(.encodeFailed(underlying: String(describing: error)))
         }
+    }
+
+    // MARK: - Error helpers
+
+    private func clearError() {
+        lastError = nil
+    }
+
+    private func report(_ err: ThemeStoreError) {
+        lastError = err
+        #if DEBUG
+            print(
+                "ThemeStore error:",
+                err.errorDescription ?? String(describing: err)
+            )
+        #endif
     }
 }

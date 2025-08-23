@@ -3,7 +3,6 @@
 import SwiftUI
 
 /// Sidebar list with Edit / Add / Delete and swipe actions.
-/// Data is passed in (no EnvironmentObject) to keep it reusable and testable.
 struct ThemeSidebarList: View {
     // MARK: - Inputs
     let themes: [Theme]
