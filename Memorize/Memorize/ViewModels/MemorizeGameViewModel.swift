@@ -76,7 +76,7 @@ final class MemorizeGameViewModel: ObservableObject {
         syncFromRules()
 
         if gameRules.indicesOfFaceUpUnmatchedCards != nil {
-            // 🔊 mismatch sound
+            // 🔊 mismatch SFX
             SoundEffects.shared.play(.mismatch)
 
             let penalty = GameTimeRulesFactory.rules(for: timeMode)
@@ -84,8 +84,7 @@ final class MemorizeGameViewModel: ObservableObject {
             timeRemaining = max(0, timeRemaining - penalty)
             isTapEnabled = false
             Task { @MainActor in
-                // ⏱ half the delay: 0.5s
-                try? await Task.sleep(nanoseconds: 500_000_000)
+                try? await Task.sleep(nanoseconds: 500_000_000)  // half a second
                 self.gameRules.flipBackUnmatchedCards()
                 self.syncFromRules()
                 if self.timeRemaining > 0 && !self.isGameOver {
@@ -93,7 +92,7 @@ final class MemorizeGameViewModel: ObservableObject {
                 }
             }
         } else if gameRules.isThisAmatch {
-            // 🔊 match sound
+            // 🔊 match SFX
             SoundEffects.shared.play(.match)
 
             let elapsed = elapsedTimeSinceStart()

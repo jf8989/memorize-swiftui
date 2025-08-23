@@ -1,65 +1,110 @@
 //  Support/Sound/SoundEffects.swift
 
 import AVFoundation
-import SwiftUI
 
-/// Tiny SFX helper for short, overlapping sounds (mp3).
-/// - Category: `.ambient` so it respects the mute switch and mixes with other audio.
 @MainActor
 final class SoundEffects {
+    enum Effect: CaseIterable { case match, mismatch }
+
     static let shared = SoundEffects()
 
-    enum Effect: String, CaseIterable {
-        case match = "sfx_match"  // sfx_match.mp3
-        case mismatch = "sfx_mismatch"  // sfx_mismatch.mp3
-    }
+    // Bank of URLs discovered in the bundle
+    private var bank: [Effect: [URL]] = [:]
 
-    private var players: [Effect: AVAudioPlayer] = [:]
+    // One reusable player per URL (reduces churn & “overload” logs)
+    private var players: [URL: AVAudioPlayer] = [:]
 
     private init() {
-        configureAudioSession()
-        preload()
+        setupAudioSession()
+        bank[.match] = discover(prefix: "sfx_match")
+        bank[.mismatch] = discover(prefix: "sfx_mismatch")
+        preloadPlayers()
     }
 
     // MARK: - Public
 
     func play(_ effect: Effect) {
-        if let p = players[effect] {
-            if p.isPlaying { p.currentTime = 0 }  // fast retrigger
-            p.play()
-        } else {
-            // Late load fallback (shouldn’t happen after preload)
-            load(effect)?.play()
-        }
+        guard let url = chooseURL(for: effect) else { return }
+        guard let player = players[url] else { return }
+        if player.isPlaying { player.stop() }
+        player.currentTime = 0
+        player.volume = 1.0
+        player.play()
+        #if DEBUG
+            print("SFX ▶︎ \(effect) → \(url.lastPathComponent)")
+        #endif
     }
+
+    #if DEBUG
+        func debugInventory() {
+            for e in Effect.allCases {
+                let files = (bank[e] ?? []).map(\.lastPathComponent)
+                print(
+                    "SFX inventory [\(e)]:",
+                    files.isEmpty ? "— none —" : files.joined(separator: ", ")
+                )
+            }
+        }
+    #endif
 
     // MARK: - Private
 
-    private func configureAudioSession() {
+    private func setupAudioSession() {
+        // Choose .playback if you want sound even with the mute switch ON.
+        // .ambient respects the mute switch.
         let session = AVAudioSession.sharedInstance()
-        try? session.setCategory(.ambient, options: [.mixWithOthers])
-        try? session.setActive(true, options: [])
-    }
-
-    private func preload() {
-        Effect.allCases.forEach { _ = load($0) }
-    }
-
-    @discardableResult
-    private func load(_ effect: Effect) -> AVAudioPlayer? {
-        guard
-            let url = Bundle.main.url(
-                forResource: effect.rawValue,
-                withExtension: "mp3"
-            )
-        else { return nil }
         do {
-            let player = try AVAudioPlayer(contentsOf: url)
-            player.prepareToPlay()
-            players[effect] = player
-            return player
+            try session.setCategory(
+                .ambient,
+                mode: .default,
+                options: [.mixWithOthers]
+            )
+            try session.setActive(true)
         } catch {
-            return nil
+            #if DEBUG
+                print("SFX audio session error:", error)
+            #endif
         }
+    }
+
+    private func discover(prefix: String) -> [URL] {
+        let exts = ["mp3", "m4a", "wav"]
+        // Find any file whose name starts with the prefix (case-insensitive)
+        var urls: [URL] = []
+        for ext in exts {
+            let found =
+                Bundle.main.urls(
+                    forResourcesWithExtension: ext,
+                    subdirectory: nil
+                ) ?? []
+            urls.append(
+                contentsOf: found.filter {
+                    $0.lastPathComponent.lowercased().hasPrefix(
+                        prefix.lowercased()
+                    )
+                }
+            )
+        }
+        // Deduplicate & sort for stable randomness
+        return Array(Set(urls)).sorted {
+            $0.lastPathComponent < $1.lastPathComponent
+        }
+    }
+
+    private func preloadPlayers() {
+        for (_, files) in bank {
+            for url in files where players[url] == nil {
+                if let p = try? AVAudioPlayer(contentsOf: url) {
+                    p.prepareToPlay()
+                    players[url] = p
+                }
+            }
+        }
+    }
+
+    private func chooseURL(for effect: Effect) -> URL? {
+        guard let files = bank[effect], !files.isEmpty else { return nil }
+        if effect == .mismatch { return files.randomElement() }
+        return files.first
     }
 }

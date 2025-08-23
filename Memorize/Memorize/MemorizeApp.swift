@@ -12,7 +12,11 @@ struct MemorizeApp: App {
             AppSplitView()
                 .environmentObject(store)
                 .environmentObject(settings)
-                .task { _ = SoundEffects.shared }  // warm up SFX
+                .task {
+                    #if DEBUG
+                        SoundEffects.shared.debugInventory()
+                    #endif
+                }
         }
     }
 }
