@@ -12,8 +12,11 @@ struct ThemeEditorView: View {
     @State private var emojiInput: String = ""
     @FocusState private var isEmojiInputFocused: Bool
 
+    @State private var liveColor: Color = .gray
+
     init(theme: Theme) {
         _draft = State(initialValue: theme)
+        _liveColor = State(initialValue: Color(rgba: theme.rgba))
     }
 
     var body: some View {
@@ -106,12 +109,13 @@ struct ThemeEditorView: View {
         Section(header: Text("Color")) {
             ColorPicker(
                 "Theme Color",
-                selection: Binding(
-                    get: { Color(rgba: draft.rgba) },
-                    set: { draft.rgba = RGBA($0) }
-                ),
+                selection: $liveColor,
                 supportsOpacity: true
             )
+            .onChange(of: liveColor) { _, new in
+                // coalesce the writes to draft (reduces Form churn)
+                draft.rgba = RGBA(new)
+            }
         }
     }
 
