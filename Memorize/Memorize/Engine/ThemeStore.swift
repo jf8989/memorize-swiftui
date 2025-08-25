@@ -86,7 +86,7 @@ final class ThemeStore: ObservableObject, ThemeStoreProtocol {
         guard themes.isEmpty, defaults.bool(forKey: seededKey) == false else {
             return
         }
-        let seeded = legacy.map { ThemeAdapter.adapt(from: $0).theme }
+        let seeded = legacy.map { ThemeAdapter.adapt(from: $0) }
         replaceAll(with: seeded)
         defaults.set(true, forKey: seededKey)
     }

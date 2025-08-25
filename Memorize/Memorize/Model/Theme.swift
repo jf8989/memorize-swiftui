@@ -10,6 +10,7 @@ struct Theme: Identifiable, Codable, Equatable {
     var pairs: Int
     /// clamped to 2...emojis.count
     var rgba: RGBA
+    var rgbaG: RGBA?
 
     /// Designated initializer clamps pairs to valid range and uniques emojis.
     init(
@@ -17,7 +18,8 @@ struct Theme: Identifiable, Codable, Equatable {
         name: String,
         emojis: [String],
         pairs: Int,
-        rgba: RGBA
+        rgba: RGBA,
+        rgbaG: RGBA? = nil
     ) {
         let unique = Array(NSOrderedSet(array: emojis)).compactMap {
             $0 as? String
@@ -29,5 +31,6 @@ struct Theme: Identifiable, Codable, Equatable {
         self.emojis = unique
         self.pairs = clampedPairs
         self.rgba = rgba
+        self.rgbaG = rgbaG
     }
 }

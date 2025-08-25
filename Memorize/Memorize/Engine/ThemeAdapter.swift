@@ -2,24 +2,19 @@
 
 import Foundation
 
-/// Translates legacy `EmojiThemeModel` into the new `Theme` plus an optional UI gradient.
+/// Translates legacy `EmojiThemeModel` into the new `Theme`.
 enum ThemeAdapter {
-    static func adapt(from legacy: EmojiThemeModel) -> (
-        theme: Theme, gradient: (RGBA, RGBA)?
-    ) {
+    static func adapt(from legacy: EmojiThemeModel) -> Theme {
         let base = rgba(forName: legacy.color)
-        let grad: (RGBA, RGBA)? = {
-            if let g = legacy.colorG { return (base, rgba(forName: g)) }
-            return nil
-        }()
+        let grad = legacy.colorG.map { rgba(forName: $0) }
         let desiredPairs = legacy.numberOfPairs ?? 8
-        let theme = Theme(
+        return Theme(
             name: legacy.name,
             emojis: legacy.emojis,
             pairs: desiredPairs,
-            rgba: base
+            rgba: base,
+            rgbaG: grad
         )
-        return (theme, grad)
     }
 
     // Name → RGBA mapping without Color/SwiftUI
