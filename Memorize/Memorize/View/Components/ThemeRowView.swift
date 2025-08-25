@@ -9,13 +9,24 @@ struct ThemeRowView: View {
     var body: some View {
         HStack(spacing: 12) {
             // Swatch
-            Color(rgba: theme.rgba)
-                .frame(width: 28, height: 28)
-                .clipShape(RoundedRectangle(cornerRadius: 6))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 6)
-                        .stroke(.black.opacity(0.10), lineWidth: 1)
-                )
+            Group {
+                if let g = theme.rgbaG {
+                    LinearGradient(
+                        colors: [Color(rgba: theme.rgba), Color(rgba: g)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                } else {
+                    Color(rgba: theme.rgba)
+                }
+            }
+            .frame(width: 28, height: 28)
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                    .stroke(.black.opacity(0.10), lineWidth: 1)
+            )
+            .accessibilityHidden(true)
 
             // Title + meta
             VStack(alignment: .leading, spacing: 4) {
